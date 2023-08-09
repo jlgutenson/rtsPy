@@ -9,40 +9,53 @@ import pathlib
 # local imports
 from data_retrieval_scripts.MRMS_QPE_Download import download
 
-# third party imports
+def run(simulation_length,
+        name_of_gridded_directory, 
+        path_to_vortex_install,
+        path_to_jython_install,
+        hec_hms_clip_shp,        
+        vortex_dss_file,
+        met_forcing,
+        variables,
+        hms_model_directory, 
+        hms_control_file_name,
+        hms_time_step,
+        hms_directory, 
+        hms_project_file,
+        hms_run_name,
+        download_met_data):
 
-# variables that will change with different runs
-# length of the simulation, in days
-simulation_length = 7
-# path to folder where each hours MRMS data will be downloaded
-name_of_gridded_directory = "mrms_pass2" # name of the directory storing each forecast
-# path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
-path_to_vortex_install = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\Scripts\build_hms_inputs\vortex-0.11.0"
-# path to Jython executable
-path_to_jython_install = r"C:\jython2.7.3\bin\jython.exe"
-# area defining the geographic extent of the HEC-HMS model
-hec_hms_clip_shp = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1_RVD\1_HEC-HMS_Model\RVD_NAD8310171\gis\RVD_83_1\RVD_83_1.shp"
-# DSS file to output the gridded meteorlogy data into
-vortex_dss_file = "RVDJune2018_JLG_scripted_1.dss"
-# type of meteorological data we're using
-met_forcing = "MRMS"
-# variable in the meteorlogy data containing precipitation
-variables = 'MultiSensor_QPE_01H_Pass2_altitude_above_msl'
-# path to the directory containing the watershed's HEC-HMS model
-hms_model_directory = r"C:\Users\Joseph Gutenson\Desktop\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1. RVD\1. HEC-HMS Model\RVD_NAD8310171"
-# name of the HEC-HMS control file we're updating
-hms_control_file_name = "June2018.control"
-# the time-step of the HEC-HMS simulation, in minutes
-hms_time_step = 15
-# path to the directory containing HEC-HMS
-hms_directory = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\Scripts\build_hms_inputs\HEC-HMS-4.11-beta.16"
-# name of the hms project file 
-hms_project_file = "RVD_NAD8310171.hms"
-# name of the hms simulation to run
-hms_run_name = "June 2018"
-
-
-if __name__ == '__main__':
+    # # variables that will change with different runs
+    # # length of the simulation, in days
+    # simulation_length = 7
+    # # path to folder where each hours MRMS data will be downloaded
+    # name_of_gridded_directory = "mrms_pass2" # name of the directory storing each forecast
+    # # path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
+    # path_to_vortex_install = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\Scripts\build_hms_inputs\vortex-0.11.0"
+    # # path to Jython executable
+    # path_to_jython_install = r"C:\jython2.7.3\bin\jython.exe"
+    # # area defining the geographic extent of the HEC-HMS model
+    # hec_hms_clip_shp = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1_RVD\1_HEC-HMS_Model\RVD_NAD8310171\gis\RVD_83_1\RVD_83_1.shp"
+    # # DSS file to output the gridded meteorlogy data into
+    # vortex_dss_file = "RVDJune2018_JLG_scripted_1.dss"
+    # # type of meteorological data we're using
+    # met_forcing = "MRMS"
+    # # variable in the meteorlogy data containing precipitation
+    # variables = 'MultiSensor_QPE_01H_Pass2_altitude_above_msl'
+    # # path to the directory containing the watershed's HEC-HMS model
+    # hms_model_directory = r"C:\Users\Joseph Gutenson\Desktop\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1. RVD\1. HEC-HMS Model\RVD_NAD8310171"
+    # # name of the HEC-HMS control file we're updating
+    # hms_control_file_name = "June2018.control"
+    # # the time-step of the HEC-HMS simulation, in minutes
+    # hms_time_step = 15
+    # # path to the directory containing HEC-HMS
+    # hms_directory = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\Scripts\build_hms_inputs\HEC-HMS-4.11-beta.16"
+    # # name of the hms project file 
+    # hms_project_file = "RVD_NAD8310171.hms"
+    # # name of the hms simulation to run
+    # hms_run_name = "June 2018"
+    # # do we need to download the met data to create the DSS file?
+    # download_met_data = True
 
     # pull the current time in UTC
     current_time = datetime.now(timezone.utc)
@@ -57,23 +70,28 @@ if __name__ == '__main__':
                                            current_time_latency_one_hour.strftime("%H"))
     mrms_directory = os.path.join(os.getcwd(),name_of_gridded_directory,date_directory)
     
-    # see if MRMS directory already exists and if so, remove it
-    if os.path.exists(mrms_directory):
-        shutil.rmtree(mrms_directory)
-        os.mkdir(mrms_directory)
-    else:
-        os.mkdir(mrms_directory)
+    # determine if we're downloading the MRMS data. Don't want this to repeat for 
+    # every watershed we run
+    if download_met_data == True:
+        # see if MRMS directory already exists and if so, remove it
+        if os.path.exists(mrms_directory):
+            shutil.rmtree(mrms_directory)
+            os.mkdir(mrms_directory)
+        else:
+            os.mkdir(mrms_directory)
 
-    # download the past week of MRMS precip
-    # ideally these two dates would be an hour apart and 
-    # we would initialize from the previous hour
-    # that needs work though
-    start = datetime(current_time_latency_one_week.year, current_time_latency_one_week.month,
-                     current_time_latency_one_week.day, current_time_latency_one_week.hour, 0)
-    end = datetime(current_time_latency_one_hour.year, current_time_latency_one_hour.month,
-                     current_time_latency_one_hour.day, current_time_latency_one_hour.hour, 0)
-    hour = timedelta(hours=1)
-    download(start, end, hour, mrms_directory)
+        # download the past week of MRMS precip
+        # ideally these two dates would be an hour apart and 
+        # we would initialize from the previous hour
+        # that needs work though
+        start = datetime(current_time_latency_one_week.year, current_time_latency_one_week.month,
+                        current_time_latency_one_week.day, current_time_latency_one_week.hour, 0)
+        end = datetime(current_time_latency_one_hour.year, current_time_latency_one_hour.month,
+                        current_time_latency_one_hour.day, current_time_latency_one_hour.hour, 0)
+        hour = timedelta(hours=1)
+        download(start, end, hour, mrms_directory)
+    else:
+        pass
 
     # check to see if gridded DSS file exists and if so, remove it and copy over the new one
     if os.path.exists(os.path.join(hms_model_directory,vortex_dss_file)):          

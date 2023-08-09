@@ -4,25 +4,26 @@ import shutil
 import sys
 from datetime import datetime
 
-# local imports
+def run(hec_ras_model_dir, 
+        hec_ras_output_dir,
+        hec_ras_prj_file_name,
+        hec_ras_plan_file_name,
+        start_date,
+        end_date):
 
+    # # where all the HEC-RAS model files are stored
+    # hec_ras_model_dir = "C:\Users\Joseph Gutenson\Desktop\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_RAS\RVD_TWDB1"
+    # # need this to delete previous output and also move new output
+    # hec_ras_output_dir = "hms_j4"
+    # # name of the HEC-RAS project (i.e., *.prj) file
+    # hec_ras_prj_file_name = "RVD_TWDB1.prj"
+    # # name of the HMS plan we're using to run the simulation
+    # hec_ras_plan_file_name = "RVD_TWDB1.p32"
 
-# list of variables that we'll later convert into a function
-# where all the HEC-RAS model files are stored
-hec_ras_model_dir = r"C:\Users\Joseph Gutenson\Desktop\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_RAS\RVD_TWDB1"
-# need this to delete previous output and also move new output
-hec_ras_output_dir = "hms_j4"
-# name of the HEC-RAS project (i.e., *.prj) file
-hec_ras_prj_file_name = "RVD_TWDB1.prj"
-# name of the HMS plan we're using to run the simulation
-hec_ras_plan_file_name = "RVD_TWDB1.p32"
-
-# declare forecast start date and end date
-# will need to be in this format 28JUL2023,1900,29JUL2023,1200
-start_date = datetime(2023, 8, 2, 14, 0)
-end_date = datetime(2023, 8, 3, 7, 0)
-
-if __name__ == '__main__':
+    # # declare forecast start date and end date
+    # # will need to be in this format 28JUL2023,1900,29JUL2023,1200
+    # start_date = datetime(2023, 8, 2, 14, 0)
+    # end_date = datetime(2023, 8, 3, 7, 0)
 
     # full path to the HEC-RAS Output Results
     full_hec_ras_output_dir = os.path.join(hec_ras_model_dir,hec_ras_output_dir)

@@ -9,40 +9,53 @@ import pathlib
 # local imports
 from data_retrieval_scripts.HRRR_QPF_Download import download
 
-# third party imports
+def run(simulation_length,
+        name_of_gridded_directory,
+        path_to_vortex_install, 
+        path_to_jython_install,
+        hec_hms_clip_shp, 
+        vortex_dss_file,
+        met_forcing,
+        variables,
+        hms_model_directory, 
+        hms_control_file_name,
+        hms_time_step,
+        hms_directory, 
+        hms_project_file,
+        hms_run_name,
+        download_met_data):
 
-# variables that will change with different runs
-# length of the simulation, in hours
-simulation_length = 18
-# path to folder where each hours MRMS data will be downloaded
-name_of_gridded_directory = "hrrr_subhourly" # name of the directory storing each forecast
-# path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
-path_to_vortex_install = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\Scripts\build_hms_inputs\vortex-0.11.0"
-# path to Jython executable
-path_to_jython_install = r"C:\jython2.7.3\bin\jython.exe"
-# area defining the geographic extent of the HEC-HMS model
-hec_hms_clip_shp = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1_RVD\1_HEC-HMS_Model\RVD_NAD8310171\gis\RVD_83_1\RVD_83_1.shp"
-# DSS file to output the gridded meteorlogy data into
-vortex_dss_file = "RVDJune2018_JLG_scripted_1.dss"
-# type of meteorological data we're using
-met_forcing = "HRRR"
-# variable in the meteorlogy data containing precipitation
-variables = 'Total_precipitation_surface_15_Minute_Accumulation'
-# path to the directory containing the watershed's HEC-HMS model
-hms_model_directory = r"C:\Users\Joseph Gutenson\Desktop\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1. RVD\1. HEC-HMS Model\RVD_NAD8310171"
-# name of the HEC-HMS control file we're updating
-hms_control_file_name = "June2018.control"
-# the time-step of the HEC-HMS simulation, in minutes
-hms_time_step = 15
-# path to the directory containing HEC-HMS
-hms_directory = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\Scripts\build_hms_inputs\HEC-HMS-4.11-beta.16"
-# name of the hms project file 
-hms_project_file = "RVD_NAD8310171.hms"
-# name of the hms simulation to run
-hms_run_name = "June 2018"
-
-
-if __name__ == '__main__':
+    # # variables that will change with different runs
+    # # length of the simulation, in hours
+    # simulation_length = 18
+    # # path to folder where each hours MRMS data will be downloaded
+    # name_of_gridded_directory = "hrrr_subhourly" # name of the directory storing each forecast
+    # # path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
+    # path_to_vortex_install = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\Scripts\build_hms_inputs\vortex-0.11.0"
+    # # path to Jython executable
+    # path_to_jython_install = r"C:\jython2.7.3\bin\jython.exe"
+    # # area defining the geographic extent of the HEC-HMS model
+    # hec_hms_clip_shp = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1_RVD\1_HEC-HMS_Model\RVD_NAD8310171\gis\RVD_83_1\RVD_83_1.shp"
+    # # DSS file to output the gridded meteorlogy data into
+    # vortex_dss_file = "RVDJune2018_JLG_scripted_1.dss"
+    # # type of meteorological data we're using
+    # met_forcing = "HRRR"
+    # # variable in the meteorlogy data containing precipitation
+    # variables = 'Total_precipitation_surface_15_Minute_Accumulation'
+    # # path to the directory containing the watershed's HEC-HMS model
+    # hms_model_directory = r"C:\Users\Joseph Gutenson\Desktop\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1. RVD\1. HEC-HMS Model\RVD_NAD8310171"
+    # # name of the HEC-HMS control file we're updating
+    # hms_control_file_name = "June2018.control"
+    # # the time-step of the HEC-HMS simulation, in minutes
+    # hms_time_step = 15
+    # # path to the directory containing HEC-HMS
+    # hms_directory = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\Scripts\build_hms_inputs\HEC-HMS-4.11-beta.16"
+    # # name of the hms project file 
+    # hms_project_file = "RVD_NAD8310171.hms"
+    # # name of the hms simulation to run
+    # hms_run_name = "June 2018"
+    # # do we need to download the met data to create the DSS file?
+    # download_met_data = True
 
     # pull the current time in UTC
     current_time = datetime.now(timezone.utc)
@@ -52,7 +65,8 @@ if __name__ == '__main__':
 
 
     # directory to store the forecast
-    hrrr_directory = os.path.join(os.getcwd(),name_of_gridded_directory)
+    hrrr_directory = os.path.join(os.getcwd(), name_of_gridded_directory)
+
     
     # see if HRRR directory already exists and if so, remove it
     if os.path.exists(hrrr_directory):
@@ -62,7 +76,7 @@ if __name__ == '__main__':
         os.mkdir(hrrr_directory)
 
     # download the HRRR precip and point the script to the download folder
-    hrrr_directory = download(hrrr_directory, current_time_latency_two_hour)
+    hrrr_directory = download(hrrr_directory, current_time_latency_two_hour, download_met_data)
 
     # check to see if gridded DSS file exists and if so, remove it and copy over the new one
     if os.path.exists(os.path.join(hms_model_directory,vortex_dss_file)):          
@@ -163,3 +177,4 @@ if __name__ == '__main__':
             stdout, stderr = process.communicate()
 
     print("HEC-HMS simulation complete...\n")
+    return(current_time_latency_two_hour, current_time_latency_two_hour_plus_17_hours)
