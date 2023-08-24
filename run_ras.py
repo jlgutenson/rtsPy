@@ -3,13 +3,17 @@ import os
 import shutil
 import sys
 from datetime import datetime
+import subprocess
 
 def run(hec_ras_model_dir, 
         hec_ras_output_dir,
         hec_ras_prj_file_name,
         hec_ras_plan_file_name,
         start_date,
-        end_date):
+        end_date,
+        ras_directory,
+        met_dir
+        ):
 
     # # where all the HEC-RAS model files are stored
     # hec_ras_model_dir = "C:\Users\Joseph Gutenson\Desktop\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_RAS\RVD_TWDB1"
@@ -24,8 +28,14 @@ def run(hec_ras_model_dir,
     # # will need to be in this format 28JUL2023,1900,29JUL2023,1200
     # start_date = datetime(2023, 8, 2, 14, 0)
     # end_date = datetime(2023, 8, 3, 7, 0)
-
+    # for Linux, we need to specify the folder containing all of the HEC-RAS code
+    # Windows users can set this to NONE
+    # ras_directory = "/home/jlgutenson/HEC-RAS_610_Linux"
     # full path to the HEC-RAS Output Results
+    # for Linux, we need to specify the folder where were sticking the .sh file
+    # easy answer is to put it into the directory with the meterological data
+    # Windows users can set this to None
+    # for Linux, trying to install Wine to run this...
     full_hec_ras_output_dir = os.path.join(hec_ras_model_dir,hec_ras_output_dir)
 
     # remove old outputs directory, if it exists
@@ -61,6 +71,7 @@ def run(hec_ras_model_dir,
     # check what system you're using to figure out how to run HEC-RAS
     # lifted a lot of this from ras2fim here: https://github.com/NOAA-OWP/ras2fim/blob/dev/src/worker_fim_rasters.py
     if sys.platform == 'win32':
+        print("Running HEC-RAS on Linux.\n")
         # import the com client and find the HEC-RAS controller
         import win32com.client
         hec = win32com.client.Dispatch("RAS641.HECRASController")
@@ -77,6 +88,58 @@ def run(hec_ras_model_dir,
 
         # close the HEC-RAS simulation
         hec.QuitRas()  # close HEC-RAS
+    
+    # running HEC-RAS is a bit different in a Linux environment
+    # used guidance in HEC-RAS release notes to piece this together 
+    # https://www.hec.usace.army.mil/software/hec-ras/documentation/HEC-RAS_610_Linux_Build_Release_Notes.pdf
+    # Kleinschmidt Group gives a good breakdown of different file types
+    # https://www.kleinschmidtgroup.com/ras-post/hec-ras-file-types/
+    elif sys.platform == 'linux' or sys.platform == 'linux2':
+        # we're building the bat file that runs HEC-HMS in Windows here
+        print("Running HEC-RAS on Linux.\n")
+        ras_file_name = "hecras_{0}{1}{2}{3}.sh".format(start_date.year, 
+                                                        start_date.strftime("%m"),
+                                                        start_date.strftime("%d"),
+                                                        start_date.strftime("%H"))
+        ras_file = os.path.join(met_dir,ras_file_name)
+        with open(ras_file, "w") as open_ras_file:
+            string_to_write = 'RAS_LIB_PATH="{0}/RAS_Linux_test_setup/libs:{0}/RAS_Linux_test_setup/libs/mkl:{0}/RAS_Linux_test_setup/libs/rhel_8"'.format(str(ras_directory))
+            open_ras_file.write(string_to_write)
+            open_ras_file.write('\n')
+            string_to_write = 'export LD_LIBRARY_PATH="$RAS_LIB_PATH:$LD_LIBRARY_PATH"'
+            open_ras_file.write(string_to_write)
+            open_ras_file.write('\n')
+            string_to_write = 'RAS_EXE_PATH="{0}/RAS_Linux_test_setup/Ras_v61/Release"'.format(str(ras_directory))
+            open_ras_file.write(string_to_write)
+            open_ras_file.write('\n')
+            string_to_write = 'export PATH="$RAS_EXE_PATH:$PATH"'
+            open_ras_file.write(string_to_write)
+            open_ras_file.write('\n')
+            # string_to_write = 'rm {0}.hdf'.format(hec_ras_plan_file_path)
+            # open_ras_file.write(string_to_write)
+            # open_ras_file.write('\n')
+            # string_to_write = 'rm {0}.tmp.hdf'.format(hec_ras_plan_file_path)
+            # open_ras_file.write(string_to_write)
+            # open_ras_file.write('\n')
+            # string_to_write = 'rm {0}dss'.format(hec_ras_plan_file_path[:-3])
+            # open_ras_file.write(string_to_write)
+            # open_ras_file.write('\n')
+
+            str_ras_projectpath = os.path.join(hec_ras_model_dir, hec_ras_prj_file_name)
+            project_number = hec_ras_plan_file_path[-2:]
+            # string_to_write = 'RasGeomPreprocess "{1}x{2}"'.format(str_ras_projectpath, hec_ras_plan_file_path[:-3], project_number)
+            # open_ras_file.write(string_to_write)
+            # open_ras_file.write('\n')
+            string_to_write = 'RasUnsteady "{1}c07" "b{2}"'.format(str_ras_projectpath, hec_ras_plan_file_path[:-3], project_number)
+            open_ras_file.write(string_to_write)
+            open_ras_file.write('\n')
+            open_ras_file.close()
+
+            # Open the subprocess without creating a new window
+            process = subprocess.Popen(ras_file, shell=True)
+            stdout, stderr = process.communicate()
+    
+    print("HEC-RAS Simulation Complete")
 
 
 

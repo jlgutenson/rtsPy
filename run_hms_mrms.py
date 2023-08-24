@@ -130,14 +130,64 @@ def run(simulation_length,
             # Open the subprocess without creating a new window
             process = subprocess.Popen(vortex_file, shell=True)
             stdout, stderr = process.communicate()
+    elif sys.platform == 'linux' or sys.platform == 'linux2':
+        # we're building the bat file that runs Vortex in Linux here
+        print("Running Vortex on Linux.\n")
+        vortex_file_name = "vortex_{0}{1}{2}{3}.sh".format(current_time_latency_one_hour.year, 
+                                                           current_time_latency_one_hour.strftime("%m"),
+                                                           current_time_latency_one_hour.strftime("%d"),
+                                                           current_time_latency_one_hour.strftime("%H"))
+        vortex_file = os.path.join(mrms_directory,vortex_file_name)
+        with open(vortex_file, "w") as open_vortex_file:
+            string_to_write = 'VORTEX_HOME="{0}"\n'.format(str(path_to_vortex_install))
+            open_vortex_file.write(string_to_write)
 
+            string_to_write = 'export PATH="$VORTEX_HOME/bin:$VORTEX_HOME/bin/gdal:$PATH"'
+            open_vortex_file.write(string_to_write)
+            open_vortex_file.write('\n')
+
+            string_to_write = 'export GDAL_DATA="$VORTEX_HOME/bin/gdal/gdal-data"' 
+            open_vortex_file.write(string_to_write)
+            open_vortex_file.write('\n')
+
+            string_to_write = 'export PROJ_LIB="$VORTEX_HOME/bin/gdal/proj"'
+            open_vortex_file.write(string_to_write)
+            open_vortex_file.write('\n')
+
+            string_to_write = 'JAVA_VORTEX_PATH="$VORTEX_HOME/jre/bin/java"' 
+            open_vortex_file.write(string_to_write)
+            open_vortex_file.write('\n')
+
+            string_to_write = 'JAVA_VORTEX_LIB_PATH="$VORTEX_HOME/bin:$VORTEX_HOME/bin/gdal"'
+            open_vortex_file.write(string_to_write)
+            open_vortex_file.write('\n')
+
+            string_to_write = 'CLASS_PATH="{0}:$VORTEX_HOME/lib/*"'.format(path_to_jython_install)
+            open_vortex_file.write(string_to_write)
+            open_vortex_file.write('\n')
+
+            LD_LIBRARY_PATH = os.environ.get('LD_LIBRARY_PATH')
+            if LD_LIBRARY_PATH==None:
+                string_to_write = 'export LD_LIBRARY_PATH="$VORTEX_HOME/bin/gdal"'.format(LD_LIBRARY_PATH)
+            else:
+                string_to_write = 'export LD_LIBRARY_PATH="$VORTEX_HOME/bin/gdal:${0}"'.format(LD_LIBRARY_PATH)
+            open_vortex_file.write(string_to_write)
+            open_vortex_file.write('\n')
+
+            string_to_write = '$JAVA_VORTEX_PATH -Xmx12g -Djava.library.path="$JAVA_VORTEX_LIB_PATH" -classpath "$CLASS_PATH" org.python.util.jython met_data_import.py "{1}" "{2}" "{3}" {4} "{5}" \n'.format(path_to_vortex_install, mrms_directory, hec_hms_clip_shp, vortex_dss_file_path, variables,met_forcing, path_to_jython_install)
+            open_vortex_file.write(string_to_write)
+            open_vortex_file.close()
+
+            # Open the subprocess without creating a new window
+            process = subprocess.Popen(vortex_file, shell=True)
+            stdout, stderr = process.communicate()
 
     # and also update our HEC-HMS control specifications
     # check if old control file exists and delete it accordingly
     if os.path.exists(os.path.join(hms_model_directory,hms_control_file_name)):
         os.remove(os.path.join(hms_model_directory,hms_control_file_name))
         
-    print("Creating the HEC-HMS control file.\n")
+    print("\nCreating the HEC-HMS control file.\n")
     with open(os.path.join(hms_model_directory,hms_control_file_name), "w") as hms_control_file:
         hms_control_file.write("Control: {0}\n".format(hms_control_file_name[:-8]))
         hms_control_file.write("     Last Modified Date: 21 July 2023\n")
@@ -192,4 +242,43 @@ def run(simulation_length,
             process = subprocess.Popen(hms_file, shell=True)
             stdout, stderr = process.communicate()
 
+    # now, let's try to run HEC-HMS with Jython
+    elif sys.platform == 'linux' or sys.platform == 'linux2':
+        # we're building the bat file that runs HEC-HMS in Windows here
+        print("Running HEC-HMS on Linux.\n")
+        hms_file_name = "hechms_{0}{1}{2}{3}.sh".format(current_time_latency_one_hour.year, 
+                                                    current_time_latency_one_hour.strftime("%m"),
+                                                    current_time_latency_one_hour.strftime("%d"),
+                                                    current_time_latency_one_hour.strftime("%H"))
+        hms_file = os.path.join(mrms_directory,hms_file_name)
+        with open(hms_file, "w") as open_hms_file:
+            string_to_write = 'export PATH="{0}/bin/gdal:$PATH"'.format(str(hms_directory))
+            open_hms_file.write(string_to_write)
+            open_hms_file.write('\n')
+            string_to_write = 'HMS_DIR="{0}"'.format(str(hms_directory))
+            open_hms_file.write(string_to_write)
+            open_hms_file.write('\n')
+            string_to_write = 'export GDAL_DATA="{0}/bin/gdal/gdal-data"'.format(str(hms_directory)) 
+            open_hms_file.write(string_to_write)
+            open_hms_file.write('\n')
+            string_to_write = 'export PROJ_LIB="{0}/bin/gdal/proj"'.format(str(hms_directory))
+            open_hms_file.write(string_to_write)
+            open_hms_file.write('\n')
+            string_to_write = 'JAVA_HMS_PATH="{0}/jre/bin/java"'.format(str(hms_directory)) 
+            open_hms_file.write(string_to_write)
+            open_hms_file.write('\n')
+            string_to_write = 'export CLASSPATH="{0}/hms.jar:{0}/lib/*"'.format(str(hms_directory),path_to_jython_install)
+            open_hms_file.write(string_to_write)
+            open_hms_file.write('\n')
+            hms_project_path = os.path.join(hms_model_directory,hms_project_file)
+            string_to_write = '$JAVA_HMS_PATH -Xmx12g -Djava.library.path=$HMS_DIR/bin:$HMS_DIR/bin/gdal org.python.util.jython run_hms.py "{0}" "{1}"'.format(hms_project_path, hms_run_name, path_to_jython_install)
+            open_hms_file.write(string_to_write)
+            open_hms_file.close()
+
+            # Open the subprocess without creating a new window
+            process = subprocess.Popen(hms_file, shell=True)
+            stdout, stderr = process.communicate()
+
     print("HEC-HMS simulation complete...\n")
+
+    return(current_time_latency_one_week, current_time_latency_two_hours, mrms_directory)

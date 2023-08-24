@@ -1,13 +1,13 @@
-# third party Java modules
-from mil.army.usace.hec.vortex.io import BatchImporter
-from mil.army.usace.hec.vortex.geo import WktFactory
-from mil.army.usace.hec.vortex.math import BatchSanitizer 
-
 # native modules to add
 import os
 import shutil
 import gzip
 import sys
+
+# third party Java modules
+from mil.army.usace.hec.vortex.io import BatchImporter
+from mil.army.usace.hec.vortex.geo import WktFactory
+from mil.army.usace.hec.vortex.math import BatchSanitizer 
 
 if __name__ == "__main__":
     """
