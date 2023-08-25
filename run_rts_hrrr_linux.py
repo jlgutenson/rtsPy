@@ -10,7 +10,7 @@ if __name__ == "__main__":
     # path to folder where each hours MRMS data will be downloaded
     name_of_gridded_directory = "hrrr_subhourly" # name of the directory storing each forecast
     # path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
-    path_to_vortex_install = "/home/jlgutenson/Vortex/build/distributions/vortex-0.12.0-dev.0.uncommitted+60a63fa"
+    path_to_vortex_install = "/home/jlgutenson/vortex-0.11.0"
     # path to Jython executable
     path_to_jython_install = "/home/jlgutenson/jython-standalone-2.7.3.jar"
     # path to the HEC-HMS directory
@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # the time-step of the HEC-HMS simulation, in minutes
     hms_time_step = 15
     # do we need to download the met data to create the DSS file?
-    download_met_data = True
+    download_met_data = False
     # where is the HEC-RAS install located?
     ras_directory = "/home/jlgutenson/HEC-RAS_610_Linux"
 
@@ -30,14 +30,14 @@ if __name__ == "__main__":
     list_of_watersheds = ['RVD']
 
     # our dictionary that tell us where all the necessary data are
-    watershed_vars_dict = {'RVD':{'hec_hms_clip_shp': "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/1.2.2.2.2/Models/HEC_HMS_411beta16/1_RVD/1_HEC-HMS_Model/RVD_NAD8310171/gis/RVD_83_1/RVD_83_1.shp",
+    watershed_vars_dict = {'RVD':{'hec_hms_clip_shp': "/home/jlgutenson/model_library/HMS/RVD/gis/RVD_83_1/RVD_83_1.shp",
                                   'vortex_dss_file' : "RVDJune2018_JLG_scripted_1.dss",
-                                  'hms_model_directory' : "/mnt/c/Users/Joseph Gutenson/Desktop/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/1.2.2.2.2/Models/HEC_HMS_411beta16/1. RVD/1. HEC-HMS Model/RVD_NAD8310171",
+                                  'hms_model_directory' : "/home/jlgutenson/model_library/HMS/RVD",
                                   'hms_control_file_name' : "June2018.control",
                                   'hms_project_file' : "RVD_NAD8310171.hms",
                                   'hms_run_name' : "June 2018",
                                   'hms_output_file': "June_2018.dss",
-                                  'hec_ras_model_dir' : "/mnt/c/Users/Joseph Gutenson/Desktop/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/1.2.2.2.2/Models/HEC_RAS/RVD_TWDB1",
+                                  'hec_ras_model_dir' : "/home/jlgutenson/model_library/RAS/RVD",
                                   'hec_ras_output_dir' : "hms_j4",
                                   'hec_ras_prj_file_name' : "RVD_TWDB1.prj",
                                   'hec_ras_plan_file_name' : "RVD_TWDB1.p32",

@@ -127,9 +127,6 @@ def run(simulation_length,
             open_vortex_file.write(string_to_write)
             open_vortex_file.close()
 
-            # Open the subprocess without creating a new window
-            process = subprocess.Popen(vortex_file, shell=True)
-            stdout, stderr = process.communicate()
     elif sys.platform == 'linux' or sys.platform == 'linux2':
         # we're building the bat file that runs Vortex in Linux here
         print("Running Vortex on Linux.\n")
@@ -178,9 +175,9 @@ def run(simulation_length,
             open_vortex_file.write(string_to_write)
             open_vortex_file.close()
 
-            # Open the subprocess without creating a new window
-            process = subprocess.Popen(vortex_file, shell=True)
-            stdout, stderr = process.communicate()
+    # Open the subprocess without creating a new window
+    process = subprocess.Popen(vortex_file, shell=True)
+    stdout, stderr = process.communicate()
 
     # and also update our HEC-HMS control specifications
     # check if old control file exists and delete it accordingly
@@ -238,10 +235,6 @@ def run(simulation_length,
             open_hms_file.write(string_to_write)
             open_hms_file.close()
 
-            # Open the subprocess without creating a new window
-            process = subprocess.Popen(hms_file, shell=True)
-            stdout, stderr = process.communicate()
-
     # now, let's try to run HEC-HMS with Jython
     elif sys.platform == 'linux' or sys.platform == 'linux2':
         # we're building the bat file that runs HEC-HMS in Windows here
@@ -275,9 +268,9 @@ def run(simulation_length,
             open_hms_file.write(string_to_write)
             open_hms_file.close()
 
-            # Open the subprocess without creating a new window
-            process = subprocess.Popen(hms_file, shell=True)
-            stdout, stderr = process.communicate()
+    # Open the subprocess without creating a new window
+    process = subprocess.Popen(hms_file, shell=True)
+    stdout, stderr = process.communicate()
 
     print("HEC-HMS simulation complete...\n")
 
