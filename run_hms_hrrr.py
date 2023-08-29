@@ -23,7 +23,9 @@ def run(simulation_length,
         hms_directory, 
         hms_project_file,
         hms_run_name,
-        download_met_data):
+        download_met_data,
+        forecast,
+        hms_forecast_name):
 
     # # variables that will change with different runs
     # # length of the simulation, in hours
@@ -44,7 +46,7 @@ def run(simulation_length,
     # variables = 'Total_precipitation_surface_15_Minute_Accumulation'
     # # path to the directory containing the watershed's HEC-HMS model
     # hms_model_directory = r"C:\Users\Joseph Gutenson\Desktop\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1. RVD\1. HEC-HMS Model\RVD_NAD8310171"
-    # # name of the HEC-HMS control file we're updating
+    # # name of the HEC-HMS control or forecast file we're updating
     # hms_control_file_name = "June2018.control"
     # # the time-step of the HEC-HMS simulation, in minutes
     # hms_time_step = 15
@@ -56,6 +58,8 @@ def run(simulation_length,
     # hms_run_name = "June 2018"
     # # do we need to download the met data to create the DSS file?
     # download_met_data = True
+    # # do we need to run HEC-HMS as a forecast?
+    # forecast = True
 
     # pull the current time in UTC
     current_time = datetime.now(timezone.utc)
@@ -169,31 +173,44 @@ def run(simulation_length,
             process = subprocess.Popen(vortex_file, shell=True)
             stdout, stderr = process.communicate()
 
-
-    # and also update our HEC-HMS control specifications
-    # check if old control file exists and delete it accordingly
-    if os.path.exists(os.path.join(hms_model_directory,hms_control_file_name)):
-        os.remove(os.path.join(hms_model_directory,hms_control_file_name))
-        
-    print("Creating the HEC-HMS control file.\n")
-    with open(os.path.join(hms_model_directory,hms_control_file_name), "w") as hms_control_file:
-        hms_control_file.write("Control: {0}\n".format(hms_control_file_name[:-8]))
-        hms_control_file.write("     Last Modified Date: 21 July 2023\n")
-        hms_control_file.write("     Last Modified Time: 17:26:17\n")
-        hms_control_file.write("     Version: 4.11\n")
-        hms_control_file.write("     Time Zone ID: America/Chicago\n")
-        hms_control_file.write("     Time Zone GMT Offset: -21600000\n")
-        hms_control_file.write("     Start Date: {0} {1} {2}\n".format(str(current_time_latency_two_hour.strftime("%d")), 
-                                                                       str(current_time_latency_two_hour.strftime("%B")),
-                                                                       str(current_time_latency_two_hour.strftime("%Y"))))
-        hms_control_file.write("     Start Time: {0}:00\n".format(str(current_time_latency_two_hour.strftime("%H"))))
-        hms_control_file.write("     End Date: {0} {1} {2}\n".format(str(current_time_latency_two_hour_plus_17_hours.strftime("%d")), 
-                                                                     str(current_time_latency_two_hour_plus_17_hours.strftime("%B")),
-                                                                     str(current_time_latency_two_hour_plus_17_hours.strftime("%Y"))))
-        hms_control_file.write("     End Time: {0}:00\n".format(str(current_time_latency_two_hour_plus_17_hours.strftime("%H")))) # this will be one hour behind
-        hms_control_file.write("     Time Interval: {0}\n".format(str(15)))
-        hms_control_file.write("End:")
-        hms_control_file.close()
+       
+    print("Updating the HEC-HMS forecast file.\n")
+    # we just need to update the dates that are present in the forecast file
+    hec_hms_forecast_file_path = os.path.join(hms_model_directory,"forecast",hms_control_file_name)
+    # Read lines using readlines()
+    open_file = open(hec_hms_forecast_file_path, 'r')
+    Lines = open_file.readlines()
+    open_file.close()
+    # writing to file changing only the date in the forecast file
+    open_file = open(hec_hms_forecast_file_path, 'w')
+    for line in Lines:
+        if "Start Date:" in line:
+            line= "\tStart Date: {0} {1} {2}\n".format(str(current_time_latency_two_hour.strftime("%d")), 
+                                                    str(current_time_latency_two_hour.strftime("%B")),
+                                                    str(current_time_latency_two_hour.strftime("%Y")))
+            open_file.writelines(line)
+        elif "Start Time:" in line:
+            line = "\tStart Time: {0}:00\n".format(str(current_time_latency_two_hour.strftime("%H")))
+            open_file.writelines(line)
+        elif "Forecast Date:" in line:
+            line= "\tForecast Date: {0} {1} {2}\n".format(str(current_time.strftime("%d")), 
+                                                    str(current_time.strftime("%B")),
+                                                    str(current_time.strftime("%Y")))
+            open_file.writelines(line)
+        elif "Forecast Time:" in line:
+            line = "\tForecast Time: {0}:00\n".format(str(current_time.strftime("%H")))
+            open_file.writelines(line)
+        elif "End Date:" in line:
+            line= "\tEnd Date: {0} {1} {2}\n".format(str(current_time_latency_two_hour_plus_17_hours.strftime("%d")), 
+                                                    str(current_time_latency_two_hour_plus_17_hours.strftime("%B")),
+                                                    str(current_time_latency_two_hour_plus_17_hours.strftime("%Y")))
+            open_file.writelines(line)
+        elif "End Time:" in line:
+            line = "\tEnd Time: {0}:00\n".format(str(current_time_latency_two_hour_plus_17_hours.strftime("%H")))
+            open_file.writelines(line)
+        else:
+            open_file.writelines(line)
+    open_file.close()
 
     # now, let's try to run HEC-HMS with Jython
     if sys.platform == 'win32':
@@ -221,7 +238,7 @@ def run(simulation_length,
             open_hms_file.write(string_to_write)
             open_hms_file.write('\n')
             hms_project_path = os.path.join(hms_model_directory,hms_project_file)
-            string_to_write = r'{0} -J-Xmx12g -Djava.library.path={1}\bin;{1}\bin\gdal run_hms.py "{2}" "{3}"'.format(path_to_jython_install,hms_directory,hms_project_path, hms_run_name)
+            string_to_write = r'{0} -J-Xmx12g -Djava.library.path={1}\bin;{1}\bin\gdal run_hms.py "{2}" "{3}" "{4}"'.format(path_to_jython_install,hms_directory,hms_project_path, hms_run_name, forecast)
             open_hms_file.write(string_to_write)
             open_hms_file.close()
 
@@ -258,7 +275,7 @@ def run(simulation_length,
             open_hms_file.write(string_to_write)
             open_hms_file.write('\n')
             hms_project_path = os.path.join(hms_model_directory,hms_project_file)
-            string_to_write = '$JAVA_HMS_PATH -Xmx12g -Djava.library.path=$HMS_DIR/bin:$HMS_DIR/bin/gdal org.python.util.jython run_hms.py "{0}" "{1}"'.format(hms_project_path, hms_run_name, path_to_jython_install)
+            string_to_write = '$JAVA_HMS_PATH -Xmx12g -Djava.library.path=$HMS_DIR/bin:$HMS_DIR/bin/gdal org.python.util.jython run_hms.py "{0}" "{1}" {3}'.format(hms_project_path, hms_forecast_name, path_to_jython_install, forecast)
             open_hms_file.write(string_to_write)
             open_hms_file.close()
 
