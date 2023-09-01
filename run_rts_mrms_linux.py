@@ -26,24 +26,28 @@ if __name__ == "__main__":
     download_met_data = True
     # where is the HEC-RAS install located?
     ras_directory = "/home/jlgutenson/HEC-RAS_610_Linux"
+    # where are all of the models stored? I stole this term of Will at HEC...
+    model_library = "/home/jlgutenson/model_library"
 
     # list of watersheds we're going to run RTS for
-    list_of_watersheds = ['RVD']
+    list_of_watersheds = ['RVD','IBWC_GRID']
 
     # our dictionary that tell us where all the necessary data are
-    watershed_vars_dict = {'RVD':{'hec_hms_clip_shp': "/home/jlgutenson/model_library/HMS/RVD/gis/RVD_83_1/RVD_83_1.shp",
+    watershed_vars_dict = {'RVD':{'hec_hms_clip_shp': "{0}/RVD/HMS/gis/RVD_83_1/RVD_83_1.shp".format(model_library),
                                   'vortex_dss_file' : "RVDJune2018_JLG_scripted_1.dss",
-                                  'hms_model_directory' : "/home/jlgutenson/model_library/HMS/RVD",
+                                  'hms_model_directory' : "{0}/RVD/HMS".format(model_library),
                                   'hms_control_file_name' : "June2018.control",
                                   'hms_project_file' : "RVD_NAD8310171.hms",
                                   'hms_run_name' : "June 2018",
                                   'hms_output_file': "June_2018.dss",
-                                  'hec_ras_model_dir' : "/home/jlgutenson/model_library/RAS/RVD",
+                                  'hec_ras_model_dir' : "{0}/RVD/RAS".format(model_library),
                                   'hec_ras_output_dir' : "hms_j4",
                                   'hec_ras_prj_file_name' : "RVD_TWDB1.prj",
                                   'hec_ras_plan_file_name' : "RVD_TWDB1.p32",
                                   }
                           }
+
+
 
     for watershed in list_of_watersheds:
         # load our watershed variables

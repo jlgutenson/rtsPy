@@ -9,7 +9,8 @@ import pathlib
 # local imports
 from data_retrieval_scripts.HRRR_QPF_Download import download
 
-def run(simulation_length,
+def run(watershed,
+        simulation_length,
         name_of_gridded_directory,
         path_to_vortex_install, 
         path_to_jython_install,
@@ -25,7 +26,8 @@ def run(simulation_length,
         hms_run_name,
         download_met_data,
         forecast,
-        hms_forecast_name):
+        hms_forecast_name,
+        hms_output_file):
 
     # # variables that will change with different runs
     # # length of the simulation, in hours
@@ -69,7 +71,9 @@ def run(simulation_length,
 
 
     # directory to store the forecast
-    hrrr_directory = os.path.join(os.getcwd(), name_of_gridded_directory)
+    date = current_time_latency_two_hour.strftime('%Y%m%d')
+    cycle = current_time_latency_two_hour.strftime("%H")
+    hrrr_directory = os.path.join(os.getcwd(), name_of_gridded_directory, date, cycle)
 
     
     # see if HRRR directory already exists and if so, remove it
@@ -80,11 +84,16 @@ def run(simulation_length,
         pass
 
     # download the HRRR precip and point the script to the download folder
-    hrrr_directory = download(hrrr_directory, current_time_latency_two_hour, download_met_data)
+    hrrr_directory = download(hrrr_directory, date, cycle, download_met_data)
 
     # check to see if gridded DSS file exists and if so, remove it and copy over the new one
     if os.path.exists(os.path.join(hms_model_directory,vortex_dss_file)):          
         os.remove(os.path.join(hms_model_directory,vortex_dss_file))
+    
+    # also delete the temp.dss file if where running HRRR
+        # check to see if gridded DSS file exists and if so, remove it and copy over the new one
+    if os.path.exists(os.path.join(hms_model_directory,"temp.dss")) and met_forcing == "HRRR":          
+        os.remove(os.path.join(hms_model_directory,"temp.dss"))
 
     # now that we have our HRRR data, we need to create our DSS file
     # check what system you're using to see if I need a batch or sh file to run Vortex with Jython
@@ -124,12 +133,17 @@ def run(simulation_length,
     elif sys.platform == 'linux' or sys.platform == 'linux2':
         # we're building the bat file that runs Vortex in Linux here
         print("Running Vortex on Linux.\n")
-        vortex_file_name = "vortex_{0}{1}{2}{3}.sh".format(current_time_latency_two_hour.year, 
-                                                           current_time_latency_two_hour.strftime("%m"),
-                                                           current_time_latency_two_hour.strftime("%d"),
-                                                           current_time_latency_two_hour.strftime("%H"))
+        vortex_file_name = "vortex_{0}{1}{2}{3}_{4}.sh".format(current_time_latency_two_hour.year, 
+                                                               current_time_latency_two_hour.strftime("%m"),
+                                                               current_time_latency_two_hour.strftime("%d"),
+                                                               current_time_latency_two_hour.strftime("%H"),
+                                                               watershed)
         vortex_file = os.path.join(hrrr_directory,vortex_file_name)
         with open(vortex_file, "w") as open_vortex_file:
+            string_to_write = '#!/bin/bash'
+            open_vortex_file.write(string_to_write)
+            open_vortex_file.write('\n')
+
             string_to_write = 'VORTEX_HOME="{0}"\n'.format(str(path_to_vortex_install))
             open_vortex_file.write(string_to_write)
 
@@ -165,7 +179,12 @@ def run(simulation_length,
             open_vortex_file.write(string_to_write)
             open_vortex_file.write('\n')
 
-            string_to_write = '$JAVA_VORTEX_PATH -Xmx12g -Djava.library.path="$JAVA_VORTEX_LIB_PATH" -classpath "$CLASS_PATH" org.python.util.jython met_data_import.py "{0}" "{1}" "{2}" "{3}" "{4}"\n'.format(hrrr_directory,hec_hms_clip_shp,vortex_dss_file_path,variables,met_forcing,path_to_jython_install)
+            string_to_write = '$JAVA_VORTEX_PATH -Xmx12g -Djava.library.path="$JAVA_VORTEX_LIB_PATH" -classpath "$CLASS_PATH" org.python.util.jython met_data_import.py "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"\n'.format(hrrr_directory,
+                                                                                                                                                                                                                hec_hms_clip_shp,
+                                                                                                                                                                                                                vortex_dss_file_path,
+                                                                                                                                                                                                                variables,
+                                                                                                                                                                                                                met_forcing,
+                                                                                                                                                                                                                watershed)
             open_vortex_file.write(string_to_write)
             open_vortex_file.close()
 
@@ -173,7 +192,6 @@ def run(simulation_length,
             process = subprocess.Popen(vortex_file, shell=True)
             stdout, stderr = process.communicate()
 
-       
     print("Updating the HEC-HMS forecast file.\n")
     # we just need to update the dates that are present in the forecast file
     hec_hms_forecast_file_path = os.path.join(hms_model_directory,"forecast",hms_control_file_name)
@@ -250,12 +268,16 @@ def run(simulation_length,
     elif sys.platform == 'linux' or sys.platform == 'linux2':
         # we're building the bat file that runs HEC-HMS in Windows here
         print("Running HEC-HMS on Linux.\n")
-        hms_file_name = "hechms_{0}{1}{2}{3}.sh".format(current_time_latency_two_hour.year, 
-                                                    current_time_latency_two_hour.strftime("%m"),
-                                                    current_time_latency_two_hour.strftime("%d"),
-                                                    current_time_latency_two_hour.strftime("%H"))
+        hms_file_name = "hechms_{0}{1}{2}{3}_{4}.sh".format(current_time_latency_two_hour.year, 
+                                                            current_time_latency_two_hour.strftime("%m"),
+                                                            current_time_latency_two_hour.strftime("%d"),
+                                                            current_time_latency_two_hour.strftime("%H"),
+                                                            watershed)
         hms_file = os.path.join(hrrr_directory,hms_file_name)
         with open(hms_file, "w") as open_hms_file:
+            string_to_write = '#!/bin/bash'
+            open_hms_file.write(string_to_write)
+            open_hms_file.write('\n')
             string_to_write = 'export PATH="{0}/bin/gdal:$PATH"'.format(str(hms_directory))
             open_hms_file.write(string_to_write)
             open_hms_file.write('\n')
@@ -282,6 +304,18 @@ def run(simulation_length,
             # Open the subprocess without creating a new window
             process = subprocess.Popen(hms_file, shell=True)
             stdout, stderr = process.communicate()
+
+            # create a new results folder in the forecast directory and save our forecast
+            where_to_store_results = os.path.join(hrrr_directory,watershed)
+            if os.path.exists(os.path.join(where_to_store_results)):
+                try:
+                    os.remove(os.path.join(where_to_store_results,hms_output_file))
+                except:
+                    pass
+            else:
+                os.mkdir(where_to_store_results)
+            path_to_results = os.path.join(hms_model_directory,hms_output_file)
+            shutil.move(path_to_results, where_to_store_results)
 
     print("HEC-HMS simulation complete...\n")
     return(current_time_latency_two_hour, current_time_latency_two_hour_plus_17_hours, hrrr_directory)

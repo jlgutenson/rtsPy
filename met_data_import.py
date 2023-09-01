@@ -17,11 +17,14 @@ if __name__ == "__main__":
     # parameters and set up for Vortex to create the dss file
     # documented here: https://github.com/HydrologicEngineeringCenter/Vortex/wiki/Batch-Import-Options
     variables = ['GaugeCorrQPE01H_altitude_above_msl']
+    # wateshed is just the name of the watershed you're modeling, it will be input into the DSS file
+    watershed = "RVD"
 
     The actual command line arguments start from index 1.
     The first item in sys.argv is the name of the script itself (e.g., my_script.py).
     list of variables that we'll eventually convert to inputs in a function.
     """
+    
     num_args = len(sys.argv) - 1
     met_grib_dir = sys.argv[1]
     met_grib_dir = met_grib_dir.replace('\\', '/')
@@ -32,6 +35,8 @@ if __name__ == "__main__":
     variables = sys.argv[4]
     variables = [variables]
     met_forcing = sys.argv[5]
+    watershed = sys.argv[6]
+    print(watershed)
 
     # see if dss file already exists and if so, remove it
     if os.path.exists(destination):
@@ -80,7 +85,7 @@ if __name__ == "__main__":
     # options that specify the composition of the DSS file
     write_options = {
         'partA': 'SHG',
-        'partB': 'RVD',
+        'partB': watershed,
         'partC': 'PRECIPITATION',
         'partF': met_forcing,
         'dataType': 'PER-CUM',
