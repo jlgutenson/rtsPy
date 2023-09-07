@@ -263,38 +263,6 @@ def run(watershed,
         # Open the subprocess without creating a new window
         process = subprocess.Popen(dss_file, shell=True)
         stdout, stderr = process.communicate()
-    
-        # now we need to update the HMS files .gage file so that the dates are correct
-        hms_gage_file_path = os.path.join(hms_model_directory,"{0}.gage".format(hms_project_file[:-4]))
-        # Read lines using readlines()
-        open_file = open(hms_gage_file_path, 'r')
-        Lines = open_file.readlines()
-        open_file.close()
-        # writing to file changing only the date in the plan file
-        open_file = open(hms_gage_file_path, 'w')
-        for line in Lines:
-            if "Filepath Separator:" in line:
-                line="\tFilepath Separator: /\n"
-                open_file.writelines(line)
-            elif "DSS File Name:" in line:
-                line="\tDSS File Name: {0}\n".format(gage_dss_path)
-                open_file.writelines(line)
-            elif "Start Time:" in line:
-                line="\t\tStart Time: {0} {1} {2}\n".format(current_time_latency_two_hour.strftime("%d"),
-                                                            current_time_latency_two_hour.strftime("%B"),
-                                                            current_time_latency_two_hour.strftime("%Y")
-                                                            )
-                open_file.writelines(line)
-            elif "End Time:" in line:
-                line="\t\tEnd Time: {0} {1} {2}\n".format(current_time_latency_two_hour.strftime("%d"),
-                                                          current_time_latency_two_hour.strftime("%B"),
-                                                          current_time_latency_two_hour.strftime("%Y")
-                                                         )
-                open_file.writelines(line)
-            else:
-                open_file.writelines(line)
-        open_file.close()
-
 
     print("Updating the HEC-HMS forecast file.\n")
     # we just need to update the dates that are present in the forecast file
