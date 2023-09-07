@@ -15,6 +15,8 @@ if __name__ == "__main__":
     path_to_jython_install = "/home/jlgutenson/jython-standalone-2.7.3.jar"
     # path to the HEC-HMS directory
     hms_directory = "/home/jlgutenson/HEC-HMS-4.11"
+    # path to the HEC-DssVue installed on your machine
+    path_to_dssvue_install = "/home/jlgutenson/hec-dssvue-3.3.26"
     # type of meteorological data we're using
     met_forcing = "HRRR"
     # variable in the meteorlogy data containing precipitation
@@ -22,7 +24,7 @@ if __name__ == "__main__":
     # the time-step of the HEC-HMS simulation, in minutes
     hms_time_step = 15
     # do we need to download the met data to create the DSS file?
-    download_met_data = False
+    download_met_data = True
     # where is the HEC-RAS install located?
     ras_directory = "/home/jlgutenson/HEC-RAS_610_Linux"
     # Are we running HEC-HMS as a forecast?
@@ -31,7 +33,7 @@ if __name__ == "__main__":
     model_library = "/home/jlgutenson/model_library"
 
     # list of watersheds we're going to run RTS for
-    list_of_watersheds = ['RVD','IBWC','AC']
+    list_of_watersheds = ['RVD','IBWC','AC','BSC','HWMD']
 
     # our dictionary that tell us where all the necessary data are
     watershed_vars_dict = {'RVD':{'hec_hms_clip_shp': "{0}/RVD/HMS/gis/RVD_83_1/RVD_83_1.shp".format(model_library),
@@ -46,6 +48,7 @@ if __name__ == "__main__":
                                   'hec_ras_output_dir' : "hms_j4",
                                   'hec_ras_prj_file_name' : "RVD_TWDB1.prj",
                                   'hec_ras_plan_file_name' : "RVD_TWDB1.p32",
+                                  'station_assimilation_list': [],
                                   },
                             'IBWC':{'hec_hms_clip_shp': "{0}/IBWC/HMS/gis/Basin_2/Basin_2.shp".format(model_library),
                                     'vortex_dss_file' : "HRRR_Forecast_IBWC.dss",
@@ -59,6 +62,7 @@ if __name__ == "__main__":
                                     'hec_ras_output_dir' : None,
                                     'hec_ras_prj_file_name' : None,
                                     'hec_ras_plan_file_name' : None,
+                                    'station_assimilation_list': ["08470200", "TWDB-03"],
                                     },
                             'AC':{'hec_hms_clip_shp': "{0}/IBWC/HMS/gis/Arroyo_Colorado/Arroyo_Colorado.shp".format(model_library),
                                   'vortex_dss_file' : "HRRR_Forecast_AC.dss",
@@ -72,7 +76,36 @@ if __name__ == "__main__":
                                   'hec_ras_output_dir' : None,
                                   'hec_ras_prj_file_name' : None,
                                   'hec_ras_plan_file_name' : None,
-                                 }
+                                  'station_assimilation_list': [],
+                                 },
+                            'BSC':{'hec_hms_clip_shp': "{0}/IBWC/HMS/gis/Basin_1/BSC.shp".format(model_library),
+                                   'vortex_dss_file' : "HRRR_Forecast_BSC.dss",
+                                   'hms_model_directory' : "{0}/BSC/HMS".format(model_library),
+                                   'hms_control_file_name' : "Forecast_1.forecast",
+                                   'hms_project_file' : "BSC_1.hms",
+                                   'hms_run_name' : None,
+                                   'hms_output_file': "Forecast_1.dss",
+                                   'hms_forecast_name': "Forecast 1",
+                                   'hec_ras_model_dir' : None,
+                                   'hec_ras_output_dir' : None,
+                                   'hec_ras_prj_file_name' : None,
+                                   'hec_ras_plan_file_name' : None,
+                                   'station_assimilation_list': [],
+                                 },
+                            'HWMD':{'hec_hms_clip_shp': "{0}/IBWC/HMS/gis/Basin_1/HWMD.shp".format(model_library),
+                                    'vortex_dss_file' : "HRRR_Forecast_HWMD.dss",
+                                    'hms_model_directory' : "{0}/HWMD/HMS".format(model_library),
+                                    'hms_control_file_name' : "Forecast_1.forecast",
+                                    'hms_project_file' : "HWMD2.hms",
+                                    'hms_run_name' : None,
+                                    'hms_output_file': "Forecast_1.dss",
+                                    'hms_forecast_name': "Forecast 1",
+                                    'hec_ras_model_dir' : None,
+                                    'hec_ras_output_dir' : None,
+                                    'hec_ras_prj_file_name' : None,
+                                    'hec_ras_plan_file_name' : None,
+                                    'station_assimilation_list': [],
+                                    },
                           }
 
     for watershed in list_of_watersheds:
@@ -99,7 +132,10 @@ if __name__ == "__main__":
                                                          download_met_data,
                                                          forecast,
                                                          vars_dict['hms_forecast_name'],
-                                                         vars_dict['hms_output_file'])
+                                                         vars_dict['hms_output_file'],
+                                                         path_to_dssvue_install,
+                                                         vars_dict['station_assimilation_list']
+                                                         )
         
 
         # now let's turn off meteorological forecast downloads to save time

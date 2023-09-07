@@ -8,6 +8,7 @@ import pathlib
 
 # local imports
 from data_retrieval_scripts.HRRR_QPF_Download import download
+from data_retrieval_scripts.pull_streamflow_data import get_data
 
 def run(watershed,
         simulation_length,
@@ -27,41 +28,53 @@ def run(watershed,
         download_met_data,
         forecast,
         hms_forecast_name,
-        hms_output_file):
+        hms_output_file,
+        path_to_dssvue_install,
+        station_assimilation_list):
 
-    # # variables that will change with different runs
-    # # length of the simulation, in hours
-    # simulation_length = 18
-    # # path to folder where each hours HRRR data will be downloaded
-    # name_of_gridded_directory = "hrrr_subhourly" # name of the directory storing each forecast
-    # # path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
-    # path_to_vortex_install = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\Scripts\build_hms_inputs\vortex-0.11.0"
-    # # path to Jython executable
-    # path_to_jython_install = r"C:\jython2.7.3\bin\jython.exe"
-    # # area defining the geographic extent of the HEC-HMS model
-    # hec_hms_clip_shp = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1_RVD\1_HEC-HMS_Model\RVD_NAD8310171\gis\RVD_83_1\RVD_83_1.shp"
-    # # DSS file to output the gridded meteorlogy data into
-    # vortex_dss_file = "RVDJune2018_JLG_scripted_1.dss"
-    # # type of meteorological data we're using
-    # met_forcing = "HRRR"
-    # # variable in the meteorlogy data containing precipitation
-    # variables = 'Total_precipitation_surface_15_Minute_Accumulation'
-    # # path to the directory containing the watershed's HEC-HMS model
-    # hms_model_directory = r"C:\Users\Joseph Gutenson\Desktop\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\1.2.2.2.2\Models\HEC_HMS_411beta16\1. RVD\1. HEC-HMS Model\RVD_NAD8310171"
-    # # name of the HEC-HMS control or forecast file we're updating
-    # hms_control_file_name = "June2018.control"
-    # # the time-step of the HEC-HMS simulation, in minutes
-    # hms_time_step = 15
-    # # path to the directory containing HEC-HMS
-    # hms_directory = r"D:\Gutenson_RATES\TWDB-FIF-LRGVDC\2023\Scripts\build_hms_inputs\HEC-HMS-4.11-beta.16"
-    # # name of the hms project file 
-    # hms_project_file = "RVD_NAD8310171.hms"
-    # # name of the hms simulation to run
-    # hms_run_name = "June 2018"
-    # # do we need to download the met data to create the DSS file?
-    # download_met_data = True
-    # # do we need to run HEC-HMS as a forecast?
-    # forecast = True
+    """
+    # variables that will change with different runs
+    # length of the simulation, in hours
+    simulation_length = 18
+    # path to folder where each hours HRRR data will be downloaded
+    name_of_gridded_directory = "hrrr_subhourly" # name of the directory storing each forecast
+    # path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
+    path_to_vortex_install = "/home/vortex-0.11.0"
+    # path to Jython executable
+    path_to_jython_install = "/home/jython.jar"
+    # area defining the geographic extent of the HEC-HMS model
+    hec_hms_clip_shp = "/path/to/RVD_83_1.shp"
+    # DSS file to output the gridded meteorlogy data into
+    vortex_dss_file = "RVDJune2018_JLG_scripted_1.dss"
+    # type of meteorological data we're using
+    met_forcing = "HRRR"
+    # variable in the meteorlogy data containing precipitation
+    variables = 'Total_precipitation_surface_15_Minute_Accumulation'
+    # path to the directory containing the watershed's HEC-HMS model
+    hms_model_directory = "/hms_directory/RVD_NAD8310171"
+    # name of the HEC-HMS control or forecast file we're updating
+    hms_control_file_name = "June2018.control"
+    # the time-step of the HEC-HMS simulation, in minutes
+    hms_time_step = 15
+    # path to the directory containing HEC-HMS
+    hms_directory = "/hms_dir/HEC-HMS-4.11"
+    # name of the hms project file 
+    hms_project_file = "RVD_NAD8310171.hms"
+    # name of the hms simulation to run
+    hms_run_name = "June 2018"
+    # do we need to download the met data to create the DSS file?
+    download_met_data = True
+    # do we need to run HEC-HMS as a forecast?
+    forecast = True
+    # name of the HMS forecast we're running
+    hms_forecast_name = "Forecast 1"
+    # Name of the DSS file that HEC-HMS will store outputs in
+    hms_output_file = "Forecast_1.dss"
+    # Where are we storing our DSSVue installation?
+    path_to_dssvue_install = "/home/jlgutenson/hec-dssvue-3.3.26"
+    # List of the gage stations that we're assimilating
+    station_assimilation_list = ['TWDB-01']
+    """
 
     # pull the current time in UTC
     current_time = datetime.now(timezone.utc)
@@ -191,6 +204,97 @@ def run(watershed,
             # Open the subprocess without creating a new window
             process = subprocess.Popen(vortex_file, shell=True)
             stdout, stderr = process.communicate()
+
+
+    # let's create the DSS file that HMS needs to assimilate our gage observations
+    # we're doing this using the HEC-DSSVue software and Jython
+    # the lines below are building a bash script that will then be ran
+    print("Creating DSS file with HEC-DSSVue.")
+    if len(station_assimilation_list) > 0:
+        # this function will pull the observed streamflow from our assimilation gages
+        station_flow_dict = get_data(station_assimilation_list, current_time)
+        gage_dss_path = os.path.join(hms_model_directory,"stations_{0}.dss".format(watershed))
+        # delete the old DSS file, they corrupt very easily otherwise
+        if os.path.exists(gage_dss_path):          
+            os.remove(gage_dss_path)
+        if sys.platform == 'linux' or sys.platform == 'linux2':
+            dss_file_name = "dss_{0}{1}{2}{3}_{4}.sh".format(current_time_latency_two_hour.year, 
+                                                                current_time_latency_two_hour.strftime("%m"),
+                                                                current_time_latency_two_hour.strftime("%d"),
+                                                                current_time_latency_two_hour.strftime("%H"),
+                                                                watershed)
+            dss_file = os.path.join(hrrr_directory,dss_file_name)
+            with open(dss_file, "w") as open_dss_file:
+                string_to_write = '#!/bin/bash'
+                open_dss_file.write(string_to_write)
+                open_dss_file.write('\n')
+
+                string_to_write = 'DSS_HOME="{0}"\n'.format(str(path_to_dssvue_install))
+                open_dss_file.write(string_to_write)
+
+                string_to_write = 'export PATH="$DSS_HOME/lib:$PATH"'
+                open_dss_file.write(string_to_write)
+                open_dss_file.write('\n')
+
+                string_to_write = 'JAVA_DSS_PATH="$DSS_HOME/java/jre/bin/java"' 
+                open_dss_file.write(string_to_write)
+                open_dss_file.write('\n')
+
+                string_to_write = 'JAVA_DSS_LIB_PATH="$DSS_HOME/lib"'
+                open_dss_file.write(string_to_write)
+                open_dss_file.write('\n')
+
+                string_to_write = 'CLASS_PATH="{0}:$DSS_HOME/jar/*"'.format(path_to_jython_install) 
+                open_dss_file.write(string_to_write)
+                open_dss_file.write('\n')
+
+                date_string = "{0}{1}{2}".format(current_time_latency_two_hour.strftime("%d"),current_time_latency_two_hour.strftime("%b").upper(),current_time_latency_two_hour.strftime("%Y"))
+                time_string = "{0}00".format(current_time_latency_two_hour.strftime("%H"))
+
+                string_to_write = '$JAVA_DSS_PATH -Xmx12g -Djava.library.path="$JAVA_DSS_LIB_PATH" -classpath "$CLASS_PATH" org.python.util.jython create_gage_dss_file.py "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(gage_dss_path,
+                                                                                                                                                                                                                       station_assimilation_list,
+                                                                                                                                                                                                                       hms_time_step,
+                                                                                                                                                                                                                       date_string,
+                                                                                                                                                                                                                       time_string,
+                                                                                                                                                                                                                       station_flow_dict)
+                open_dss_file.write(string_to_write)
+                open_dss_file.write('\n') 
+                open_dss_file.close()
+        # Open the subprocess without creating a new window
+        process = subprocess.Popen(dss_file, shell=True)
+        stdout, stderr = process.communicate()
+    
+        # now we need to update the HMS files .gage file so that the dates are correct
+        hms_gage_file_path = os.path.join(hms_model_directory,"{0}.gage".format(hms_project_file[:-4]))
+        # Read lines using readlines()
+        open_file = open(hms_gage_file_path, 'r')
+        Lines = open_file.readlines()
+        open_file.close()
+        # writing to file changing only the date in the plan file
+        open_file = open(hms_gage_file_path, 'w')
+        for line in Lines:
+            if "Filepath Separator:" in line:
+                line="\tFilepath Separator: /\n"
+                open_file.writelines(line)
+            elif "DSS File Name:" in line:
+                line="\tDSS File Name: {0}\n".format(gage_dss_path)
+                open_file.writelines(line)
+            elif "Start Time:" in line:
+                line="\t\tStart Time: {0} {1} {2}\n".format(current_time_latency_two_hour.strftime("%d"),
+                                                            current_time_latency_two_hour.strftime("%B"),
+                                                            current_time_latency_two_hour.strftime("%Y")
+                                                            )
+                open_file.writelines(line)
+            elif "End Time:" in line:
+                line="\t\tEnd Time: {0} {1} {2}\n".format(current_time_latency_two_hour.strftime("%d"),
+                                                          current_time_latency_two_hour.strftime("%B"),
+                                                          current_time_latency_two_hour.strftime("%Y")
+                                                         )
+                open_file.writelines(line)
+            else:
+                open_file.writelines(line)
+        open_file.close()
+
 
     print("Updating the HEC-HMS forecast file.\n")
     # we just need to update the dates that are present in the forecast file
