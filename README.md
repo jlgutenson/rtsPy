@@ -12,8 +12,11 @@ sudo apt-get install libgfortran5
 4. Use ```wget``` to download and extract the following Linux versions of the HEC software suite
 
   - [HEC-DSSVue version 3.3.26](https://www.hec.usace.army.mil/software/hec-dssvue/downloads.aspx)
+
   - [HEC-HMS version 4.11](https://www.hec.usace.army.mil/software/hec-hms/downloads.aspx)
+
   - [Vortex version 0.11.x](https://github.com/HydrologicEngineeringCenter/Vortex) - You will currently need to build Vortex from the source code. HEC hasn't released a new Linux version. The previous version had GDAL issues.
+
   - [HEC-RAS version 6.1.0](https://www.hec.usace.army.mil/software/hec-ras/download.aspx) - This isn't used in the current workflow (as of September 21, 2023). 
 
 5. Make the appopriate references to the data and models in run_rts_hrrr_linux.py.
