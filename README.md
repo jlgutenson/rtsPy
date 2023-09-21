@@ -3,7 +3,7 @@ A Python library for simulating the HEC-RTS workflow.
 
 The current paradigm for this workflow is that the models and linkages between models and data have been completed using each model's graphical user interface (GUI). This workflow is just the straw that stirs your modeling drink. 
 
-The workflow currently utilizes the [High-Resolution Rapid Refresh (HRRR)](https://rapidrefresh.noaa.gov/hrrr/sub-hourly) forecast guidance that provides 15-minute time step precipitation estimates at a 3-km horizontal resolution and updates hourly. 
+The workflow currently utilizes the [High-Resolution Rapid Refresh (HRRR)](https://rapidrefresh.noaa.gov/hrrr/sub-hourly](https://rapidrefresh.noaa.gov/hrrr/) forecast guidance that provides 15-minute time step precipitation estimates at a 3-km horizontal resolution and updates hourly. 
 
 ## Set-up Instructions for Linux     
 Currently, the workflow is dependent upon Ubuntu 20.04 as its operating system.
