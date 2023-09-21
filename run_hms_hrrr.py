@@ -30,7 +30,8 @@ def run(watershed,
         hms_forecast_name,
         hms_output_file,
         path_to_dssvue_install,
-        station_assimilation_list):
+        station_assimilation_list,
+        cwd):
 
     """
     # variables that will change with different runs
@@ -75,6 +76,9 @@ def run(watershed,
     # List of the gage stations that we're assimilating
     station_assimilation_list = ['TWDB-01']
     """
+
+    # set the file permissions for the bash scripts
+    execute_permission = 0o755
 
     # pull the current time in UTC
     current_time = datetime.now(timezone.utc)
@@ -134,14 +138,9 @@ def run(watershed,
             string_to_write = r'set "CLASSPATH=%VORTEX_HOME%\lib\*"'
             open_vortex_file.write(string_to_write)
             open_vortex_file.write('\n')
-            string_to_write = '{0} -J-Xmx12g -Djava.library.path=%VORTEX_HOME%\\bin;%VORTEX_HOME%\\bin\gdal met_data_import.py "{1}" "{2}" "{3}" {4} "{5}"\n'.format(path_to_jython_install,hrrr_directory,hec_hms_clip_shp,vortex_dss_file_path,variables,met_forcing)
+            string_to_write = '{0} -J-Xmx12g -Djava.library.path=%VORTEX_HOME%\\bin;%VORTEX_HOME%\\bin\gdal {6}\met_data_import.py "{1}" "{2}" "{3}" {4} "{5}"\n'.format(path_to_jython_install,hrrr_directory,hec_hms_clip_shp,vortex_dss_file_path,variables,met_forcing,cwd)
             open_vortex_file.write(string_to_write)
             open_vortex_file.close()
-
-            # Open the subprocess without creating a new window
-            process = subprocess.Popen(vortex_file, shell=True)
-            stdout, stderr = process.communicate()
-
 
     elif sys.platform == 'linux' or sys.platform == 'linux2':
         # we're building the bat file that runs Vortex in Linux here
@@ -153,9 +152,9 @@ def run(watershed,
                                                                watershed)
         vortex_file = os.path.join(hrrr_directory,vortex_file_name)
         with open(vortex_file, "w") as open_vortex_file:
-            string_to_write = '#!/bin/bash'
-            open_vortex_file.write(string_to_write)
-            open_vortex_file.write('\n')
+            # string_to_write = '#!/bin/bash'
+            # open_vortex_file.write(string_to_write)
+            # open_vortex_file.write('\n')
 
             string_to_write = 'VORTEX_HOME="{0}"\n'.format(str(path_to_vortex_install))
             open_vortex_file.write(string_to_write)
@@ -192,28 +191,40 @@ def run(watershed,
             open_vortex_file.write(string_to_write)
             open_vortex_file.write('\n')
 
-            string_to_write = '$JAVA_VORTEX_PATH -Xmx12g -Djava.library.path="$JAVA_VORTEX_LIB_PATH" -classpath "$CLASS_PATH" org.python.util.jython met_data_import.py "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"\n'.format(hrrr_directory,
+            string_to_write = '$JAVA_VORTEX_PATH -Xmx12g -Djava.library.path="$JAVA_VORTEX_LIB_PATH" -classpath "$CLASS_PATH" org.python.util.jython {6}/met_data_import.py "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"\n'.format(hrrr_directory,
                                                                                                                                                                                                                 hec_hms_clip_shp,
                                                                                                                                                                                                                 vortex_dss_file_path,
                                                                                                                                                                                                                 variables,
                                                                                                                                                                                                                 met_forcing,
-                                                                                                                                                                                                                watershed)
+                                                                                                                                                                                                                watershed,
+                                                                                                                                                                                                                cwd)
             open_vortex_file.write(string_to_write)
             open_vortex_file.close()
 
-            # Open the subprocess without creating a new window
-            process = subprocess.Popen(vortex_file, shell=True)
-            stdout, stderr = process.communicate()
+    # Open the subprocess without creating a new window
+    # Set the execute permissions on the file
+    os.chmod(vortex_file, execute_permission)
+    # try:
+    #     subprocess.check_call(["/bin/bash",vortex_file])
+    # except subprocess.CalledProcessError as e:
+    #     print(f"Error executing script: {e}")
+    process = subprocess.Popen(vortex_file, shell=True)
+    stdout, stderr = process.communicate()
+    
 
 
     # let's create the DSS file that HMS needs to assimilate our gage observations
     # we're doing this using the HEC-DSSVue software and Jython
     # the lines below are building a bash script that will then be ran
+    # had to install libgfortran5 to get this working on Ubuntu 20.04
+    # sudo apt-get update 
+    # sudo apt-get install libgfortran5
     print("Creating DSS file with HEC-DSSVue.")
     if len(station_assimilation_list) > 0:
         # this function will pull the observed streamflow from our assimilation gages
         station_flow_dict = get_data(station_assimilation_list, current_time)
-        gage_dss_path = os.path.join(hms_model_directory,"stations_{0}.dss".format(watershed))
+        gage_dss_file = "stations_{0}.dss".format(watershed)
+        gage_dss_path = os.path.join(hms_model_directory,gage_dss_file)
         # delete the old DSS file, they corrupt very easily otherwise
         if os.path.exists(gage_dss_path):          
             os.remove(gage_dss_path)
@@ -251,18 +262,21 @@ def run(watershed,
                 date_string = "{0}{1}{2}".format(current_time_latency_two_hour.strftime("%d"),current_time_latency_two_hour.strftime("%b").upper(),current_time_latency_two_hour.strftime("%Y"))
                 time_string = "{0}00".format(current_time_latency_two_hour.strftime("%H"))
 
-                string_to_write = '$JAVA_DSS_PATH -Xmx12g -Djava.library.path="$JAVA_DSS_LIB_PATH" -classpath "$CLASS_PATH" org.python.util.jython create_gage_dss_file.py "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(gage_dss_path,
+                string_to_write = '$JAVA_DSS_PATH -Xmx12g -Djava.library.path="$JAVA_DSS_LIB_PATH" -classpath "$CLASS_PATH" org.python.util.jython {6}/create_gage_dss_file.py "{0}" "{1}" "{2}" "{3}" "{4}" "{5}"'.format(gage_dss_path,
                                                                                                                                                                                                                        station_assimilation_list,
                                                                                                                                                                                                                        hms_time_step,
                                                                                                                                                                                                                        date_string,
                                                                                                                                                                                                                        time_string,
-                                                                                                                                                                                                                       station_flow_dict)
+                                                                                                                                                                                                                       station_flow_dict,
+                                                                                                                                                                                                                       cwd)
                 open_dss_file.write(string_to_write)
                 open_dss_file.write('\n') 
                 open_dss_file.close()
-        # Open the subprocess without creating a new window
-        process = subprocess.Popen(dss_file, shell=True)
-        stdout, stderr = process.communicate()
+            # Open the subprocess without creating a new window
+            # Set the execute permissions on the file
+            os.chmod(dss_file, execute_permission)
+            process = subprocess.Popen(dss_file, shell=True)
+            stdout, stderr = process.communicate()
 
     print("Updating the HEC-HMS forecast file.\n")
     # we just need to update the dates that are present in the forecast file
@@ -331,10 +345,6 @@ def run(watershed,
             string_to_write = r'{0} -J-Xmx12g -Djava.library.path={1}\bin;{1}\bin\gdal run_hms.py "{2}" "{3}" "{4}"'.format(path_to_jython_install,hms_directory,hms_project_path, hms_run_name, forecast)
             open_hms_file.write(string_to_write)
             open_hms_file.close()
-
-            # Open the subprocess without creating a new window
-            process = subprocess.Popen(hms_file, shell=True)
-            stdout, stderr = process.communicate()
     
         # now, let's try to run HEC-HMS with Jython
     elif sys.platform == 'linux' or sys.platform == 'linux2':
@@ -369,25 +379,36 @@ def run(watershed,
             open_hms_file.write(string_to_write)
             open_hms_file.write('\n')
             hms_project_path = os.path.join(hms_model_directory,hms_project_file)
-            string_to_write = '$JAVA_HMS_PATH -Xmx12g -Djava.library.path=$HMS_DIR/bin:$HMS_DIR/bin/gdal org.python.util.jython run_hms.py "{0}" "{1}" {3}'.format(hms_project_path, hms_forecast_name, path_to_jython_install, forecast)
+            string_to_write = '$JAVA_HMS_PATH -Xmx12g -Djava.library.path=$HMS_DIR/bin:$HMS_DIR/bin/gdal org.python.util.jython {4}/run_hms.py "{0}" "{1}" {3}'.format(hms_project_path, 
+                                                                                                                                                                       hms_forecast_name, 
+                                                                                                                                                                       path_to_jython_install, 
+                                                                                                                                                                       forecast, 
+                                                                                                                                                                       cwd)
             open_hms_file.write(string_to_write)
             open_hms_file.close()
 
-            # Open the subprocess without creating a new window
-            process = subprocess.Popen(hms_file, shell=True)
-            stdout, stderr = process.communicate()
+    # Open the subprocess without creating a new window
+    # Set the execute permissions on the file
+    os.chmod(hms_file, execute_permission)
+    process = subprocess.Popen(hms_file, shell=True)
+    stdout, stderr = process.communicate()
 
-            # create a new results folder in the forecast directory and save our forecast
-            where_to_store_results = os.path.join(hrrr_directory,watershed)
-            if os.path.exists(os.path.join(where_to_store_results)):
-                try:
-                    os.remove(os.path.join(where_to_store_results,hms_output_file))
-                except:
-                    pass
-            else:
-                os.mkdir(where_to_store_results)
-            path_to_results = os.path.join(hms_model_directory,hms_output_file)
-            shutil.move(path_to_results, where_to_store_results)
+    # create a new results folder in the forecast directory and save our forecast
+    where_to_store_results = os.path.join(hrrr_directory,watershed)
+    if os.path.exists(os.path.join(where_to_store_results)):
+        try:
+            os.remove(os.path.join(where_to_store_results,hms_output_file))
+        except:
+            pass
+    else:
+        os.mkdir(where_to_store_results)
+    path_to_results = os.path.join(hms_model_directory,hms_output_file)
+    shutil.move(path_to_results, where_to_store_results)
+    # also saving the precipitation forcing for good measure
+    shutil.copyfile(vortex_dss_file_path, os.path.join(where_to_store_results,vortex_dss_file))
+    # also saving the gage DSS file for good measure
+    if len(station_assimilation_list) > 0:
+        shutil.copyfile(gage_dss_path, os.path.join(where_to_store_results,gage_dss_file))
 
     print("HEC-HMS simulation complete...\n")
     return(current_time_latency_two_hour, current_time_latency_two_hour_plus_17_hours, hrrr_directory)

@@ -3,6 +3,7 @@
 import urllib.request
 from datetime import datetime
 import os
+import time
 
 def download(download_directory, date, cycle, download_met_data):
     if download_met_data == True:
@@ -16,6 +17,12 @@ def download(download_directory, date, cycle, download_met_data):
             filename = url.split("/")[-1]
             f = open(download_directory + os.sep + filename, 'wb')
             f.write(urllib.request.urlopen(url).read())
+            f.close()            
+            # set the file permissions for the bash scripts
+            execute_permission = 0o755
+            # Set the execute permissions on the file
+            os.chmod(download_directory + os.sep + filename, execute_permission)
+            time.sleep(50) # in seconds
     else:
         pass
     return(download_directory)
