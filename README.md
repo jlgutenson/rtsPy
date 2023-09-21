@@ -3,6 +3,8 @@ A Python library for simulating the HEC-RTS workflow.
 
 The current paradigm for this workflow is that the models and linkages between models and data have been completed using each model's graphical user interface (GUI). This workflow is just the straw that stirs your modeling drink. 
 
+The workflow currently utilizes the [High-Resolution Rapid Refresh (HRRR)](https://rapidrefresh.noaa.gov/hrrr/sub-hourly) forecast guidance that provides 15-minute time step precipitation estimates at a 3-km horizontal resolution and updates hourly. 
+
 ## Set-up Instructions for Linux     
 Currently, the workflow is dependent upon Ubuntu 20.04 as its operating system.
 1. Install [Miniconda for Linux](https://docs.conda.io/projects/miniconda/en/latest/).
@@ -26,3 +28,6 @@ sudo apt-get install libgfortran5
 6. If automating your set-up, edit the crontab on your machine (run ```sudo crontab -e``` or edit the crontab directly by running the command ```sudo vim /etc/crontab```). Point the crontab to your conda environment's Python executable and your run_rts_hrrr_linux.py script.
 
 Congratulations! You should now have an automated instance of HEC-RTS running for your watersheds.
+
+## What's Going on in run_rts_hrrr_linux.py script
+```run_rts_hrrr_linux.py```
