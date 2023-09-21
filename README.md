@@ -29,7 +29,7 @@ sudo apt-get install libgfortran5
 
 Congratulations! You should now have an automated instance of HEC-RTS running for your watersheds.
 
-## What's going on in ```run_rts_hrrr_linux.py``` script
+## What's going on in the ```run_rts_hrrr_linux.py``` script
 ```run_rts_hrrr_linux.py``` is an example of how one can utilize the current workflow to automate HEC-RTS simulations in the cloud. 
 
 The file provides instructions on how to run the simulations, such as whether to download the forecast or where the HEC-HMS is installed locally. The file also illustrates how one can use a Python dictionary to create a profile for each watershed's suite of model instances. 
