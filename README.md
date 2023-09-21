@@ -19,7 +19,7 @@ sudo apt-get install libgfortran5
 
   - [HEC-RAS version 6.1.0](https://www.hec.usace.army.mil/software/hec-ras/download.aspx) - This isn't used in the current workflow (as of September 21, 2023). 
 
-5. Make the appopriate references to the data and models in run_rts_hrrr_linux.py.
+5. Make the appopriate references to the data and models in ```run_rts_hrrr_linux.py```.
 6. If automating your set-up, edit the crontab on your machine (run ```sudo crontab -e``` or edit the crontab directly by running the command ```sudo vim /etc/crontab```). Point the crontab to your conda environment's Python executable and your run_rts_hrrr_linux.py script.
 
 Congratulations! You should now have an automated instance of HEC-RTS running for your watersheds.
