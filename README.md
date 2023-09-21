@@ -13,6 +13,8 @@ sudo apt-get install libgfortran5
 
   - [HEC-DSSVue version 3.3.26](https://www.hec.usace.army.mil/software/hec-dssvue/downloads.aspx)
   - [HEC-HMS version 4.11](https://www.hec.usace.army.mil/software/hec-hms/downloads.aspx)
+  - [Vortex version 0.11.x](https://github.com/HydrologicEngineeringCenter/Vortex)
+    - You will currently need to build Vortex from the source code. HEC hasn't released a new Linux version. The previous version had GDAL issues.
 
 5. Make the appopriate references to the data and models in run_rts_hrrr_linux.py.
 6. If automating your set-up, edit the crontab on your machine (run ```sudo crontab -e``` or edit the crontab directly by running the command ```sudo vim /etc/crontab```). Point the crontab to your conda environment's Python executable and your run_rts_hrrr_linux.py script.
