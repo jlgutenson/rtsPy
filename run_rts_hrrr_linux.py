@@ -1,8 +1,12 @@
 # built in imports
 import os
+from datetime import datetime, timezone, timedelta
 
 # local imports
 import run_hms_hrrr
+from data_retrieval_scripts.STOFS3D_Stage_Download import get_stofs3d
+import flood_inundation_mapping
+
 import run_ras
 
 if __name__ == "__main__":
@@ -12,6 +16,7 @@ if __name__ == "__main__":
         simulation_length = 18
         # path to folder where each hours MRMS data will be downloaded
         name_of_gridded_directory = "/home/jlgutenson/rtspy/hrrr_subhourly" # name of the directory storing each forecast
+        # name_of_gridded_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/hrrr_subhourly" # name of the directory storing each forecast
         # path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
         path_to_vortex_install = "/home/jlgutenson/vortex-0.11.0"
         # path to Jython executable
@@ -38,6 +43,14 @@ if __name__ == "__main__":
         delete_gribs = True
         # where are the scripts were executing (for cron jobs)
         cwd = '/home/jlgutenson/rtspy'
+        # cwd = os.getcwd()
+        # should I download the STOFS-3D-Atlantic data?
+        download_stofs_data = True
+        # what STOFS-3D-Atlantic file format should I download?
+        file_format_for_stofs = "grib2"
+        # where are we storing the STOFS forecasts?
+        name_of_stofs_directory = "/home/jlgutenson/rtspy/stofs3d_daily"
+        # name_of_stofs_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/stofs3d_daily"
 
         # list of watersheds we're going to run RTS for
         list_of_watersheds = ['RVD','IBWC','AC','BSC','HWMD']
@@ -56,6 +69,9 @@ if __name__ == "__main__":
                                         'hec_ras_prj_file_name' : "RVD_TWDB1.prj",
                                         'hec_ras_plan_file_name' : "RVD_TWDB1.p32",
                                         'station_assimilation_list': [],
+                                        'lat_of_boundary': 26.502514,
+                                        'lon_of_boundary': -97.402596,
+                                        'dem_path': "{0}/RVD/HMS/terrain/Terrain_2.elevation.tif".format(model_library),
                                         },
                                 'IBWC':{'hec_hms_clip_shp': "{0}/IBWC/HMS/gis/Basin_2/Basin_2.shp".format(model_library),
                                         'vortex_dss_file' : "HRRR_Forecast_IBWC.dss",
@@ -70,6 +86,9 @@ if __name__ == "__main__":
                                         'hec_ras_prj_file_name' : None,
                                         'hec_ras_plan_file_name' : None,
                                         'station_assimilation_list': ["08470200", "TWDB-03"],
+                                        'lat_of_boundary': 26.397862,
+                                        'lon_of_boundary': -97.366219,
+                                        'dem_path': "{0}/IBWC/HMS/terrain/Terrain_2.elevation.tif".format(model_library),
                                         },
                                 'AC':{'hec_hms_clip_shp': "{0}/IBWC/HMS/gis/Arroyo_Colorado/Arroyo_Colorado.shp".format(model_library),
                                         'vortex_dss_file' : "HRRR_Forecast_AC.dss",
@@ -84,6 +103,9 @@ if __name__ == "__main__":
                                         'hec_ras_prj_file_name' : None,
                                         'hec_ras_plan_file_name' : None,
                                         'station_assimilation_list': [],
+                                        'lat_of_boundary': 26.362558,
+                                        'lon_of_boundary': -97.327534,
+                                        'dem_path': "{0}/AC/HMS/terrain/Terrain_1.elevation.tif".format(model_library),
                                         },
                                 'BSC':{'hec_hms_clip_shp': "{0}/IBWC/HMS/gis/Basin_1/BSC.shp".format(model_library),
                                         'vortex_dss_file' : "HRRR_Forecast_BSC.dss",
@@ -98,6 +120,9 @@ if __name__ == "__main__":
                                         'hec_ras_prj_file_name' : None,
                                         'hec_ras_plan_file_name' : None,
                                         'station_assimilation_list': [],
+                                        'lat_of_boundary': 26.056447,
+                                        'lon_of_boundary': -97.188190,
+                                        'dem_path': "{0}/BSC/HMS/terrain/Terrain_1.elevation.tif".format(model_library),
                                         },
                                 'HWMD':{'hec_hms_clip_shp': "{0}/IBWC/HMS/gis/Basin_1/HWMD.shp".format(model_library),
                                         'vortex_dss_file' : "HRRR_Forecast_HWMD.dss",
@@ -112,6 +137,9 @@ if __name__ == "__main__":
                                         'hec_ras_prj_file_name' : None,
                                         'hec_ras_plan_file_name' : None,
                                         'station_assimilation_list': [],
+                                        'lat_of_boundary': 26.467848,
+                                        'lon_of_boundary': -97.395641,
+                                        'dem_path': "{0}/HWMD/HMS/terrain/Terrain_1.elevation.tif".format(model_library),
                                         },
                                 }
 
@@ -149,17 +177,38 @@ if __name__ == "__main__":
                 # now let's turn off meteorological forecast downloads to save time
                 download_met_data = False
 
+                # download the coastal boundary (this only updates once a day at the moment at 1900 UTC)
+                current_time = datetime.now(timezone.utc)
+                cycle = int(current_time.strftime("%-H"))
+                print(cycle)
+                if cycle == 19:
+                        coastal_boundary_dss_path, coastal_dir, max_wse = get_stofs3d(watershed, 
+                                                                                      vars_dict['lat_of_boundary'], 
+                                                                                      vars_dict['lon_of_boundary'], 
+                                                                                      name_of_stofs_directory, 
+                                                                                      download_stofs_data,
+                                                                                      file_format_for_stofs, 
+                                                                                      path_to_dssvue_install, 
+                                                                                      path_to_jython_install, 
+                                                                                      cwd)
+
+                        # now let's turn off tidal and surge forecast downloads to save time
+                        download_stofs_data = False
+
+                        # use the maximum water surface elevation forecast to estimate a flood inundation map
+                        flood_inundation_raster_path = flood_inundation_mapping.with_max_wse(watershed, vars_dict['dem_path'], max_wse, coastal_dir)
 
 
-        # now let's run HEC-RAS with our HMS streamflow forecast
-        # run_ras.run(vars_dict['hec_ras_model_dir'], 
-        #             vars_dict['hec_ras_output_dir'],
-        #             vars_dict['hec_ras_prj_file_name'],
-        #             vars_dict['hec_ras_plan_file_name'],
-        #             start_date,
-        #             end_date,
-        #             ras_directory,
-        #             met_dir)
+
+                # now let's run HEC-RAS with our HMS streamflow forecast
+                # run_ras.run(vars_dict['hec_ras_model_dir'], 
+                #             vars_dict['hec_ras_output_dir'],
+                #             vars_dict['hec_ras_prj_file_name'],
+                #             vars_dict['hec_ras_plan_file_name'],
+                #             start_date,
+                #             end_date,
+                #             ras_directory,
+                #             met_dir)
 
         if delete_gribs is True:
                 for file in os.listdir(met_dir):
@@ -169,3 +218,12 @@ if __name__ == "__main__":
                                 os.remove(os.path.join(met_dir,file))
                         elif file.endswith(".ncx4"):
                                 os.remove(os.path.join(met_dir,file))
+                if cycle == 19:
+                        for file in os.listdir(coastal_dir):
+                                if file.endswith(".grib2"):
+                                        os.remove(os.path.join(coastal_dir,file))
+                                elif file.endswith(".idx"):
+                                        os.remove(os.path.join(coastal_dir,file))
+                                elif file.endswith(".nc"):
+                                        os.remove(os.path.join(coastal_dir,file))
+

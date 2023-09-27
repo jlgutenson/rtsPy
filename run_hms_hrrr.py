@@ -210,8 +210,6 @@ def run(watershed,
     #     print(f"Error executing script: {e}")
     process = subprocess.Popen(vortex_file, shell=True)
     stdout, stderr = process.communicate()
-    
-
 
     # let's create the DSS file that HMS needs to assimilate our gage observations
     # we're doing this using the HEC-DSSVue software and Jython
