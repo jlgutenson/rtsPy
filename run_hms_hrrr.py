@@ -34,47 +34,36 @@ def run(watershed,
         cwd):
 
     """
-    # variables that will change with different runs
-    # length of the simulation, in hours
-    simulation_length = 18
-    # path to folder where each hours HRRR data will be downloaded
-    name_of_gridded_directory = "hrrr_subhourly" # name of the directory storing each forecast
-    # path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
-    path_to_vortex_install = "/home/vortex-0.11.0"
-    # path to Jython executable
-    path_to_jython_install = "/home/jython.jar"
-    # area defining the geographic extent of the HEC-HMS model
-    hec_hms_clip_shp = "/path/to/RVD_83_1.shp"
-    # DSS file to output the gridded meteorlogy data into
-    vortex_dss_file = "RVDJune2018_JLG_scripted_1.dss"
-    # type of meteorological data we're using
-    met_forcing = "HRRR"
-    # variable in the meteorlogy data containing precipitation
-    variables = 'Total_precipitation_surface_15_Minute_Accumulation'
-    # path to the directory containing the watershed's HEC-HMS model
-    hms_model_directory = "/hms_directory/RVD_NAD8310171"
-    # name of the HEC-HMS control or forecast file we're updating
-    hms_control_file_name = "June2018.control"
-    # the time-step of the HEC-HMS simulation, in minutes
-    hms_time_step = 15
-    # path to the directory containing HEC-HMS
-    hms_directory = "/hms_dir/HEC-HMS-4.11"
-    # name of the hms project file 
-    hms_project_file = "RVD_NAD8310171.hms"
-    # name of the hms simulation to run
-    hms_run_name = "June 2018"
-    # do we need to download the met data to create the DSS file?
-    download_met_data = True
-    # do we need to run HEC-HMS as a forecast?
-    forecast = True
-    # name of the HMS forecast we're running
-    hms_forecast_name = "Forecast 1"
-    # Name of the DSS file that HEC-HMS will store outputs in
-    hms_output_file = "Forecast_1.dss"
-    # Where are we storing our DSSVue installation?
-    path_to_dssvue_install = "/home/jlgutenson/hec-dssvue-3.3.26"
-    # List of the gage stations that we're assimilating
-    station_assimilation_list = ['TWDB-01']
+    Downloads a 2-hour delayed from real-time High-Resolution Rapid Refresh (HRRR) forecast, formats this into HEC-HMS format using the Vortex 
+    software, builds the input files, and runs a pre-constructed HEC-HMS model. Currently works only for Ubuntu 20.04
+
+    Args:
+        simulation_length (int): Length of the simulation, in hours (e.g., 18).
+        name_of_gridded_directory (str):  Path to folder where each hours HRRR data will be downloaded (e.g., "hrrr_subhourly").
+        path_to_vortex_install (str): Path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format (e.g., "/home/vortex-0.11.0").
+        path_to_jython_install (str): Path to Jython executable (e.g., "/home/jython.jar").
+        hec_hms_clip_shp (str): Path to a shapefile defining the geographic extent of the HEC-HMS model (e.g., "/path/to/RVD_83_1.shp").
+        vortex_dss_file (str): Path to the DSS file containing the HEC-HMS formatted HRRR forecast (e.g., "RVDJune2018_JLG_scripted_1.dss").
+        met_forcing (str): The type of meteorological data we're using (e.g., "HRRR").
+        variables (str): The variable in the HRRR grib files designating precipitation (e.g., 'Total_precipitation_surface_15_Minute_Accumulation').
+        hms_model_directory (str): The path to the directory containing the watershed's HEC-HMS model (e.g.,"/hms_directory/RVD_NAD8310171").
+        hms_control_file_name (str): The name of the HEC-HMS control or forecast file we're updating (e.g., "June2018.control").
+        hms_time_step (int): The time-step of the HEC-HMS simulation, in minutes (e.g., 15).
+        hms_directory (str): The path to the directory containing HEC-HMS (e.g., "/hms_dir/HEC-HMS-4.11").
+        hms_project_file (str): The name of the HEC-HMS project file  (e.g., "RVD_NAD8310171.hms").
+        hms_run_name (str): The name of the HEC-HMS simulation to run (e.g., "June 2018").
+        download_met_data (bool): Do we need to download the met data to create the DSS file (e.g., True)?
+        forecast (bool): Do we need to run HEC-HMS as a forecast (e.g., True)?
+        hms_forecast_name (str): The name of the HEC-HMS forecast we're running (e.g., "Forecast 1").
+        hms_output_file (str): The name of the DSS file that HEC-HMS will store outputs in (e.g., "Forecast_1.dss").
+        path_to_dssvue_install (str): Path to the DSSVue installation (e.g., "/home/jlgutenson/hec-dssvue-3.3.26").
+        station_assimilation_list (list): List of the gage stations that we're assimilating (e.g., ['TWDB-01']).
+        cwd (string): Specification of the current working directory for the software. Used to run Jython (e.g., "/home/jlgutenson/rtsPy").
+    
+    Returns:
+        timestamp:  current_time_latency_two_hour - In UTC, the 24-hour time 2-hours behind the current time. 
+        timestamp:  current_time_latency_two_hour_plus_17_hours - In UTC, the the 24-hour time 15 hours into the future from current time.  
+        str: hrrr_directory - The path to where the analysis results will be stored
     """
 
     # set the file permissions for the bash scripts

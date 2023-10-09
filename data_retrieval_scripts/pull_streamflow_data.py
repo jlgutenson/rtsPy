@@ -2,6 +2,17 @@ import requests
 import json
 
 def get_data(station_assimilation_list, current_time):
+    """
+    Downloads data from RTHS stations for assimilation into HEC-HMS
+
+    Args:
+        station_assimilation_list (list): A list of stations to assimilate into the HEC-HMS simulation (e.g., ['TWDB-01']).
+        current_time (timemstamp): A timestamp for the current time, in UTC. 
+
+    Returns:
+        dict: station_flow_dict - A dictionary indexed by the station ID and the most recent streamflow value
+
+    """
     # the output of this is station_flow_dict that contains
     # all of the flows we'll use to initialize our model
     station_flow_dict = {}
@@ -31,5 +42,4 @@ def get_data(station_assimilation_list, current_time):
             # hard coding this for the time being
             station_flow_dict[station] = 1.00
 
-    
     return station_flow_dict

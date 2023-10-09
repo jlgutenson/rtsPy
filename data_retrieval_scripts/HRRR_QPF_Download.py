@@ -1,5 +1,4 @@
-# lifted from here and augmented to suit my needs:
-# https://github.com/HydrologicEngineeringCenter/data-retrieval-scripts
+
 import urllib.request
 from datetime import datetime, timezone, timedelta
 import os
@@ -7,6 +6,20 @@ import time
 import sys
 
 def download(download_directory, date, cycle, download_met_data):
+    """
+    Downloads HRRR grib2 files from NOAA NOMADS.The original script was lifted from here and augmented to suit my needs: 
+    https://github.com/HydrologicEngineeringCenter/data-retrieval-scripts
+
+    Args:
+        download_directory (str): The path to where the user has specified the forecasts will be downloaded (e.g., "/home/jlgutenson/rtsPy/hrrr_subhourly") 
+        date (str): The date of the forecast being downloaded in '%Y%m%d' format. 
+        cycle (str): The UTC cycle of the forecast "%H". 
+        download_met_data (bool): Tells the script whether or not to proceed with the download (e.g., True).
+
+    Returns:
+        str: download_directory - Path to where the HRRR forecasts are being stored.
+
+    """
     start_time = datetime.now(timezone.utc)
     if download_met_data == True:
         if not os.path.isdir(os.path.split(download_directory)[0]):

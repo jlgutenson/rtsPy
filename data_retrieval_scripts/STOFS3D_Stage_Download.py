@@ -14,6 +14,21 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 def download(download_directory, date, cycle, download_stofs_data, file_format):
+
+    """
+    Downloads STOFS-3D Atlantic Data from NOAA's NOMADS server.
+
+    Args:
+        download_directory (str): The path to where the STOFS-3D Atlantic data will be downloaded and where outputs will be stored (e.g., "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/stofs3d").
+        date (str): The current date in datetime.strftime '%Y%m%d' format. 
+        cycle (int): Two digit value representing the forecast cycle, currently a constant of 12 representing the 12:00 UTC forecast.
+        download_stofs_data (bol): Tells the function whether or not to download the STOFS-3D Atlantic data from NOAA's servers (e.g., False).
+        file_format (str): Let's the function know whether to download the STOFS-3D-Atlantic data in "grib2" or "netcdf" file format (e.g., "grib2").
+
+    Returns:
+        str: download_directory - The full path to the directory containing all downloaded STOFS-3D Atlantic data and outputs, such as the DSS file containing the full stage forecast for the basin outlet.  
+
+    """
     # breakdown of the various stofs datasets can be found here:
     # https://noaa-nos-stofs3d-pds.s3.amazonaws.com/README.html
     if download_stofs_data == True:
@@ -112,30 +127,25 @@ def get_stofs3d(boundary_name, lat_of_boundary, lon_of_boundary, download_direct
                 file_format, path_to_dssvue_install, path_to_jython_install, cwd):
 
     """
-    # label for boundary
-    boundary_name = "IBWC"
+    Downloads STOFS-3D Atlantic Data (using the download() function in this script), formats the data in a DSS file for incorporatin into HEC-RAS, and outputs the maximum 
+    water surface elevation as a single float value. This is meant to be used in conjunction with one watershed's outlet, 
+    represented geographically by the lat_of_boundary and lon_of_boundary variables and in title, by the boundary name.  
 
-    # example points to query
-    lat_of_boundary = 26.467121
-    lon_of_boundary = -97.393651
+    Args:
+        boundary_name (str): A representative name of the boundary or the name of the watershed for the outlet we're using (e.g., "IBWC").
+        lat_of_boundary (float): The latitude of the boundary/outlet of the watershed (e.g., 26.467121).
+        lon_of_boundary (float): The longitude of the boundary/outlet of the watershed (e.g., -97.393651).
+        download_directory (str): The path to where the STOFS-3D Atlantic data will be downloaded and where outputs will be stored (e.g., "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/stofs3d").
+        download_stofs_data (bol): Tells the function whether or not to download the STOFS-3D Atlantic data from NOAA's servers (e.g., False).
+        file_format (str): Let's the function know whether to download the STOFS-3D-Atlantic data in "grib2" or "netcdf" file format (e.g., "grib2").
+        path_to_dssvue_install (str): Path to the main directory of the HEC-DSSVue installation (e.g., "/home/jlgutenson/hec-dssvue-3.3.26").
+        path_to_jython_install (str): Path to the Jython jar file that is installed on the local machine (e.g., "/home/jlgutenson/jython-standalone-2.7.3.jar").
+        cwd (str): Current working directory (cwd) or path to the location of the scripts being ran (e.g., "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/rtsPy").
 
-    # download_directory
-    download_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/stofs3d"
-
-    # should we download the data?
-    download_stofs_data = False
-
-    # download grib2 or netcdf versions. The NetCDF is higher resolution.
-    file_format = "grib2"
-
-    # where I've install DSSVue to create my DSS file
-    path_to_dssvue_install = "/home/jlgutenson/hec-dssvue-3.3.26"
-
-    # where is the Jython that DSSVue will use?
-    path_to_jython_install = "/home/jlgutenson/jython-standalone-2.7.3.jar"
-
-    # what is the cwd for the Jython script?
-    cwd = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs"
+    Returns:
+        str: coastal_boundary_dss_path - The full path to the result DSS file that possesses the STOFS-3D Atlantic stage forecast in units of ft based upon the NAVD88 vertical reference.
+        str: download_directory - The full path to the directory containing all downloaded STOFS-3D Atlantic data and outputs, such as the DSS file containing the full stage forecast for the basin outlet.  
+        float: max_wse - The maximum water surface elevation at the lat_of_boundary and lon_of_boundary in the STOFS-3D-Atlantic forecast in units of meters above NAVD88.
     """
 
     time_stamp_list = []
@@ -214,7 +224,7 @@ def get_stofs3d(boundary_name, lat_of_boundary, lon_of_boundary, download_direct
                     find_index = False
 
 
-                # Use xarray's nearest-neighbor selection method
+                # Select by index
                 selected_data = ds.water_level_m.sel(y = minindex_2d[0],x = minindex_2d[1])
 
                 # Extract the selected time stamp, in nanoseconds
