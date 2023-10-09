@@ -335,7 +335,7 @@ def run(watershed,
     
         # now, let's try to run HEC-HMS with Jython
     elif sys.platform == 'linux' or sys.platform == 'linux2':
-        # we're building the bat file that runs HEC-HMS in Windows here
+        # we're building the bat file that runs HEC-HMS on Linux here
         print("Running HEC-HMS on Linux.\n")
         hms_file_name = "hechms_{0}{1}{2}{3}_{4}.sh".format(current_time_latency_two_hour.year, 
                                                             current_time_latency_two_hour.strftime("%m"),

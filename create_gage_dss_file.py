@@ -8,8 +8,7 @@ import sys
 import ast
 from datetime import datetime
 
-# pulled the start of this from 
-# https://github.com/HydrologicEngineeringCenter/DSSVue-Example-Scripts/tree/master/src
+
 """
 # list of gage IDs
 gage_ids = ["08470200", "TWDB-03"]
@@ -20,7 +19,24 @@ time_stamp = datetime(2023, 9, 5, 17, 0, 0)
 """
 
 if __name__ == "__main__":
+    """
+    This is a Jython 2.7 script that is utilizes HEC-DSSVue to create the DSS file that contains the gage observations that initialize HEC-HMS. 
+    The script uses HEC-DSSVue and Jython. Functions as a command line script. Currently works only for Ubuntu 20.04.
 
+    Args:
+        gage_dss_path (str): Full path to where the resulting DSS file will be stored.
+        station_ids (list of str): List of Gage IDs for each stream gage that will be assimilated into HEC-HMS.
+        time_step (int): The number of minutes between each observation. Not important at the moment as we only use one observation to initialize the model.
+        date_string (str): Start date of forecast in strftime "%d%b%Y" format.
+        time_string (str): The forecast cycle in UTC time (e.g., "1200" UTC). 
+        station_flow_dict (dict): A dictionary containing station_id: streamflow_value for each stream gage in the watershed. 
+    
+    Returns:
+        None
+
+    """
+    # pulled the start of this from 
+    # https://github.com/HydrologicEngineeringCenter/DSSVue-Example-Scripts/tree/master/src
     num_args = len(sys.argv) - 1
     gage_dss_path = str(sys.argv[1])
     station_ids = ast.literal_eval(sys.argv[2])

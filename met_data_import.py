@@ -11,20 +11,29 @@ from mil.army.usace.hec.vortex.math import BatchSanitizer
 
 if __name__ == "__main__":
     """
-    met_grib_dir = "D:/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/mrms_gage_corrected"
-    clip_shp = "C:/Users/Joseph Gutenson/Desktop/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/1.2.2.2.2/Models/HEC_HMS_411beta16/1. RVD/Extrass/RVDWshed.shp"
-    destination = "D:/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/1.2.2.2.2/Models/HEC_HMS_411beta16/1_RVD/1_HEC-HMS_Model/RVD_NAD8310171/RVDJune2018_JLG_scripted_1.dss"
+    This is a Jython 2.7 script that is utilizes HEC's Vortex utility to create the DSS file that contains the precipitation forecast for HEC-HMS to utilize. 
+    The script uses Vortex and Jython. Functions as a command line script. Currently works only for Ubuntu 20.04.
+
+    Args:
+        gage_dss_path (str): str(sys.argv[1])
+        station_ids (list of str): List of Gage IDs for each stream gage that will be assimilated into HEC-HMS.
+        time_step (int): The number of minutes between each observation. Not important at the moment as we only use one observation to initialize the model.
+        date_string (str): Start date of forecast in strftime "%d%b%Y" format.
+        time_string (str): The forecast cycle in UTC time (e.g., "1200" UTC). 
+        station_flow_dict (dict): A dictionary containing station_id: streamflow_value for each stream gage in the watershed. 
+
+        met_grib_dir (str): Full path to where the input grib files are stored (e.g., "D:/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/mrms_gage_corrected").
+        clip_shp (str): Full path to where the shapefile of the watershed's basin is stored. This is used to clip the meteorological forcings (e.g., "C:/Users/Joseph Gutenson/Desktop/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/1.2.2.2.2/Models/HEC_HMS_411beta16/1. RVD/Extrass/RVDWshed.shp").
+        destination (str): Full path to where the output DSS file containing the meteorological forcing data will be stored (e.g., "D:/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/1.2.2.2.2/Models/HEC_HMS_411beta16/1_RVD/1_HEC-HMS_Model/RVD_NAD8310171/RVDJune2018_JLG_scripted_1.dss").
+        variables (list of str): Name of the variable in the grib2 file containing precipitation (e.g., ['GaugeCorrQPE01H_altitude_above_msl']).
+        watershed (str): Name of the watershed for which the file is being created (e.g., "RVD").
+
+    Returns:
+        None
+        
+    """
     # parameters and set up for Vortex to create the dss file
     # documented here: https://github.com/HydrologicEngineeringCenter/Vortex/wiki/Batch-Import-Options
-    variables = ['GaugeCorrQPE01H_altitude_above_msl']
-    # wateshed is just the name of the watershed you're modeling, it will be input into the DSS file
-    watershed = "RVD"
-
-    The actual command line arguments start from index 1.
-    The first item in sys.argv is the name of the script itself (e.g., my_script.py).
-    list of variables that we'll eventually convert to inputs in a function.
-    """
-    
     num_args = len(sys.argv) - 1
     met_grib_dir = sys.argv[1]
     met_grib_dir = met_grib_dir.replace('\\', '/')

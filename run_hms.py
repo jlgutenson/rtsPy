@@ -6,10 +6,21 @@ from hms import Hms
 import sys
 
 if __name__ == "__main__":
+    """
+    This is a Jython 2.7 script that is utilizes Jython to run HEC-HMS. The script uses HEC-HMS and Jython. Functions as a command line script. 
+    Currently works only for Ubuntu 20.04.
+
+    Args:
+        hms_project_file (str): Full path to the HEC-HMS project file.
+        forecast (bol): Boolean telling the script whether to execute a HEC-HMS run or a forecast. If true, the script will execute a forecast.
+
+    Returns:
+        None
+        
+    """
 
     # The actual command line arguments start from index 1.
     # The first item in sys.argv is the name of the script itself (e.g., my_script.py).
-    # list of variables that we'll eventually convert to inputs in a function.
     hms_project_file = sys.argv[1]
     forecast = sys.argv[3]
 
