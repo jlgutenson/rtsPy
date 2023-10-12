@@ -173,7 +173,10 @@ def get_stofs3d(boundary_name, lat_of_boundary, lon_of_boundary, download_direct
 
     if file_format == "grib2":
 
+        # find all gribs in the directory and sort them
         grib_files = os.listdir(download_directory)
+        grib_files = [word for word in grib_files if word.endswith('.grib2')]
+        grib_files.sort()
 
         # find the grid index if you haven't already
         find_index = True
@@ -243,6 +246,8 @@ def get_stofs3d(boundary_name, lat_of_boundary, lon_of_boundary, download_direct
     elif file_format == "netcdf":
         # list the files in the download directory
         netcdf_files = os.listdir(download_directory)
+        netcdf_files = [word for word in netcdf_files if word.endswith('.nc')]
+        netcdf_files.sort()
 
         # make two list to store the resulting arrays
         time_stamp_list = []
@@ -320,7 +325,7 @@ def get_stofs3d(boundary_name, lat_of_boundary, lon_of_boundary, download_direct
         wse_array = np.concatenate((wse_list[0], wse_list[1]))
 
     # create a plot of the time series to see what things look like
-    plt.rcParams["figure.figsize"] = (10,7)
+    plt.rcParams["figure.figsize"] = (13,10)
     plt.plot(time_stamp_array,wse_array)
     plt.xlabel("Time (UTC)")
     plt.ylabel("Water Surface Elevation (meters above NAVD88)")
@@ -379,7 +384,7 @@ def get_stofs3d(boundary_name, lat_of_boundary, lon_of_boundary, download_direct
             open_dss_file.write('\n')
 
             date_string = "{0}{1}{2}".format(date_to_use.strftime("%d"),date_to_use.strftime("%b").upper(),date_to_use.strftime("%Y"))
-            time_string = "{0}00".format(cycle+1)
+            time_string = "{0}00".format(cycle)
 
             string_to_write = f'$JAVA_DSS_PATH -Xmx12g -Djava.library.path="$JAVA_DSS_LIB_PATH" -classpath "$CLASS_PATH" org.python.util.jython {cwd}/create_coastal_boundary_dss_file.py "{coastal_boundary_dss_path}" "{wse_list}" "{date_string}" "{time_string}" "{boundary_name}"'
 

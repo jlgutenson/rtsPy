@@ -218,7 +218,7 @@ if __name__ == "__main__":
                                 os.remove(os.path.join(met_dir,file))
                         elif file.endswith(".ncx4"):
                                 os.remove(os.path.join(met_dir,file))
-                if cycle == 19:
+                if cycle == 20:
                         for file in os.listdir(coastal_dir):
                                 if file.endswith(".grib2"):
                                         os.remove(os.path.join(coastal_dir,file))
