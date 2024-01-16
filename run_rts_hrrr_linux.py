@@ -15,8 +15,8 @@ if __name__ == "__main__":
         # length of the simulation, in hours
         simulation_length = 18
         # path to folder where each hours MRMS data will be downloaded
-        name_of_gridded_directory = "/home/jlgutenson/rtspy/hrrr_subhourly" # name of the directory storing each forecast
-        # name_of_gridded_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/hrrr_subhourly" # name of the directory storing each forecast
+        # name_of_gridded_directory = "/home/jlgutenson/rtspy/hrrr_subhourly" # name of the directory storing each forecast
+        name_of_gridded_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/hrrr_subhourly" # name of the directory storing each forecast
         # path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
         path_to_vortex_install = "/home/jlgutenson/vortex-0.11.0"
         # path to Jython executable
@@ -42,15 +42,15 @@ if __name__ == "__main__":
         # should I delete the grib forecast files? They're big!
         delete_gribs = True
         # where are the scripts were executing (for cron jobs)
-        cwd = '/home/jlgutenson/rtspy'
-        # cwd = os.getcwd()
+        # cwd = '/home/jlgutenson/rtspy'
+        cwd = os.getcwd()
         # should I download the STOFS-3D-Atlantic data?
         download_stofs_data = True
         # what STOFS-3D-Atlantic file format should I download?
         file_format_for_stofs = "grib2"
         # where are we storing the STOFS forecasts?
-        name_of_stofs_directory = "/home/jlgutenson/rtspy/stofs3d_daily"
-        # name_of_stofs_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/stofs3d_daily"
+        # name_of_stofs_directory = "/home/jlgutenson/rtspy/stofs3d_daily"
+        name_of_stofs_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/stofs3d_daily"
 
         # list of watersheds we're going to run RTS for
         list_of_watersheds = ['RVD','IBWC','AC','BSC','HWMD']
@@ -85,7 +85,7 @@ if __name__ == "__main__":
                                         'hec_ras_output_dir' : None,
                                         'hec_ras_prj_file_name' : None,
                                         'hec_ras_plan_file_name' : None,
-                                        'station_assimilation_list': ["08470200", "TWDB-03"],
+                                        'station_assimilation_list': ["08470200", "TWDB 3"],
                                         'lat_of_boundary': 26.397862,
                                         'lon_of_boundary': -97.366219,
                                         'dem_path': "{0}/IBWC/HMS/terrain/Terrain_2.elevation.tif".format(model_library),
@@ -180,7 +180,6 @@ if __name__ == "__main__":
                 # download the coastal boundary (this only updates once a day at the moment at 1900 UTC)
                 current_time = datetime.now(timezone.utc)
                 cycle = int(current_time.strftime("%-H"))
-                print(cycle)
                 if cycle == 19:
                         coastal_boundary_dss_path, coastal_dir, max_wse = get_stofs3d(watershed, 
                                                                                       vars_dict['lat_of_boundary'], 

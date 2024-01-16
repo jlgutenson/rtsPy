@@ -63,3 +63,10 @@ def download(start, end, hour, destination):
         loop = asyncio.get_event_loop()
         results = loop.run_until_complete(main(loop, tmp, destination))
         del loop, results
+
+if __name__ == '__main__':
+    start = datetime(2023, 11, 10, 0, 0)
+    end = datetime(2022, 11, 15, 0, 0)
+    hour = timedelta(hours=1)
+    destination = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/mrms_pass2"
+    download(start, end, hour, destination)

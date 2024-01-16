@@ -57,7 +57,7 @@ def run(watershed,
         hms_forecast_name (str): The name of the HEC-HMS forecast we're running (e.g., "Forecast 1").
         hms_output_file (str): The name of the DSS file that HEC-HMS will store outputs in (e.g., "Forecast_1.dss").
         path_to_dssvue_install (str): Path to the DSSVue installation (e.g., "/home/jlgutenson/hec-dssvue-3.3.26").
-        station_assimilation_list (list): List of the gage stations that we're assimilating (e.g., ['TWDB-01']).
+        station_assimilation_list (list): List of the gage stations that we're assimilating (e.g., ['TWDB 3']).
         cwd (string): Specification of the current working directory for the software. Used to run Jython (e.g., "/home/jlgutenson/rtsPy").
     
     Returns:
@@ -97,7 +97,7 @@ def run(watershed,
         os.remove(os.path.join(hms_model_directory,vortex_dss_file))
     
     # also delete the temp.dss file if where running HRRR
-        # check to see if gridded DSS file exists and if so, remove it and copy over the new one
+    # check to see if gridded DSS file exists and if so, remove it and copy over the new one
     if os.path.exists(os.path.join(hms_model_directory,"temp.dss")) and met_forcing == "HRRR":          
         os.remove(os.path.join(hms_model_directory,"temp.dss"))
 

@@ -1,5 +1,10 @@
+# built in imports
+from datetime import datetime, timedelta, timezone
+
+# third party imports
 import requests
 import json
+import pandas as pd
 
 def get_data(station_assimilation_list, current_time):
     """
@@ -39,7 +44,44 @@ def get_data(station_assimilation_list, current_time):
                     station_flow_dict[station] = streamflow
         
         else:
-            # hard coding this for the time being
-            station_flow_dict[station] = 1.00
+
+            # where going to look one day one month, just in case the station is down
+            start = current_time - timedelta(days=30)
+            end = current_time
+            target_time = current_time - timedelta(hours=2)
+
+            start = start.strftime("%Y-%m-%d")
+            end = end.strftime("%Y-%m-%d")
+
+            # pull down list of stations and use the site name to find site id
+            df = pd.read_csv("http://rths.us/getsites.cgi", sep='|')
+            df = df[df['SiteName'].str.contains(station)]
+            siteid = df.iloc[0]['SiteID']
+
+            # RTHS URL
+            url = "http://rths.us/"
+            url_state = "graphcsv"
+            url_config = "config.json"
+            seriesid = "2032" # this is the varaible id
+            title = "Water%20level%20in%20Surface%20Water%20using%20NAVD88"
+
+            full_url = f"http://rths.us/?state=graphcsv&config={url_config}&from={start}&to={end}&seriesid={seriesid}&siteid={siteid}&title={title}"
+
+            # read in data and set the time stamp as the index
+            df = pd.read_csv(full_url).dropna()
+            df['UTC Date'] = pd.to_datetime(df['UTC Date'], utc=True)
+            df = df.reset_index().set_index('UTC Date')
+            df = df.drop(['index'], axis=1)  
+            df = df.dropna()
+            
+            try:
+                # select the data we want to use in our model
+                # find the last reported value assuming something is better than nothing
+                s = df.iloc[df.index.get_indexer([target_time], method='nearest')]
+                stage = s.values[0][0]
+                streamflow = 6.31*(stage + 0.4)**1.79
+                station_flow_dict[station] = streamflow
+            except:
+                station_flow_dict[station] = 0
 
     return station_flow_dict

@@ -1,9 +1,9 @@
-
 import urllib.request
 from datetime import datetime, timezone, timedelta
 import os
 import time
 import sys
+import shutil
 
 def download(download_directory, date, cycle, download_met_data):
     """
@@ -53,6 +53,7 @@ def download(download_directory, date, cycle, download_met_data):
             f.close()   
             # end the program if the download is taking too long
             if running_time >= 45:
+                shutil.rmtree(download_directory)
                 sys.exit("This download took too long, let's wait on the next forecast")
             # set the file permissions for the bash scripts
             execute_permission = 0o755

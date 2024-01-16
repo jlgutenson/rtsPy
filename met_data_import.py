@@ -79,9 +79,20 @@ if __name__ == "__main__":
                 in_files_path.append(in_file_full_path)
             else:
                 pass
+        elif met_forcing == "AORC":
+            # retrieve just the path to the destination file
+            destination_dir = os.path.dirname(destination)
+            temp_dss = os.path.join(destination_dir,"temp.dss")
+            if in_file.endswith("nc4"):
+                in_file_full_path = os.path.join(met_grib_dir,in_file)
+                in_files_path.append(in_file_full_path)
+            else:
+                pass
+
 
     # sort the list of grib files, doesn't seem to make a difference
     in_files_path.sort()
+
 
     # GIS options that mimic Linda and Ivan's initial set-up in HEC-HMS
     geo_options = {
@@ -111,7 +122,7 @@ if __name__ == "__main__":
                         .build()
 
         myImport.process()
-    elif met_forcing == "HRRR":
+    elif met_forcing == "HRRR" or "AORC":
         myImport = BatchImporter.builder() \
                         .inFiles(in_files_path) \
                         .variables(variables) \
@@ -123,7 +134,7 @@ if __name__ == "__main__":
         myImport.process()
 
     # make the HRRR zero values = 0 
-    if met_forcing == "HRRR":
+    if met_forcing == "HRRR" or "AORC":
         myImport = BatchSanitizer.builder()\
         .pathToInput(temp_dss)\
         .selectAllVariables()\
@@ -132,4 +143,9 @@ if __name__ == "__main__":
         .destination(destination)\
         .writeOptions(write_options).build()
 
-        myImport.process() 
+        myImport.process()
+
+    else:
+        pass
+    
+     
