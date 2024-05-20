@@ -36,3 +36,6 @@ The file provides instructions on how to run the simulations, such as whether to
 
 ## References
 Gutenson, J. L., Santos, I., Navarro, L., Ernest, A. N. S., Kirkey, W., Fuller, C., Lehman, W. P., & Brauer, T. A. (2024, May). A Case Study of How the Hydrologic Engineering Center (HEC) Suite of Tools Can Be Deployed to Perform Automated Forecasting. World Environmental and Water Resources Congress 2024. https://doi.org/10.1061/9780784485477.04
+
+## Funding
+This work was funded by the Texas Water Development Board (TWDB) Flood Infrastructure Fund (FIF) under TWDB Commitment No. G1001288.
