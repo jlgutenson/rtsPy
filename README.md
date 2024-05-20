@@ -33,3 +33,6 @@ Congratulations! You should now have an automated instance of HEC-RTS running fo
 ```run_rts_hrrr_linux.py``` is an example of how one can utilize the current workflow to automate HEC-RTS simulations in the cloud. 
 
 The file provides instructions on how to run the simulations, such as whether to download the forecast or where the HEC-HMS is installed locally. The file also illustrates how one can use a Python dictionary to create a profile for each watershed's suite of model instances. 
+
+## References
+Gutenson, J. L., Santos, I., Navarro, L., Ernest, A. N. S., Kirkey, W., Fuller, C., Lehman, W. P., & Brauer, T. A. (2024, May). A Case Study of How the Hydrologic Engineering Center (HEC) Suite of Tools Can Be Deployed to Perform Automated Forecasting. World Environmental and Water Resources Congress 2024. https://doi.org/10.1061/9780784485477.04
