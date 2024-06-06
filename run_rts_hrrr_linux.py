@@ -6,6 +6,7 @@ from datetime import datetime, timezone, timedelta
 import run_hms_hrrr
 from data_retrieval_scripts.STOFS3D_Stage_Download import get_stofs3d
 import flood_inundation_mapping
+import cleaner
 
 import run_ras
 
@@ -14,6 +15,8 @@ if __name__ == "__main__":
         # variables that will be constant for all watersheds
         # length of the simulation, in hours
         simulation_length = 18
+        # specify how long each forecast will stick around, in days
+        forecast_age_to_filter = 30
         # path to folder where each hours MRMS data will be downloaded
         # name_of_gridded_directory = "/home/jlgutenson/rtspy/hrrr_subhourly" # name of the directory storing each forecast
         name_of_gridded_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/hrrr_subhourly" # name of the directory storing each forecast
@@ -145,8 +148,12 @@ if __name__ == "__main__":
 
         for watershed in list_of_watersheds:
                 print("Running {0}".format(watershed))
+
                 # load our watershed variables
                 vars_dict = watershed_vars_dict[watershed]
+
+                # clear out old HEC-HMS forecasts
+                cleaner.remove_old_forecasts(name_of_gridded_directory, watershed, vars_dict['hms_forecast_name'], forecast_age_to_filter)
 
                 # let's run HMS first
                 start_date, end_date, met_dir = run_hms_hrrr.run(watershed,
