@@ -18,8 +18,8 @@ if __name__ == "__main__":
         # specify how long each forecast will stick around, in days
         forecast_age_to_filter = 30
         # path to folder where each hours MRMS data will be downloaded
-        # name_of_gridded_directory = "/home/jlgutenson/rtspy/hrrr_subhourly" # name of the directory storing each forecast
-        name_of_gridded_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/hrrr_subhourly" # name of the directory storing each forecast
+        name_of_gridded_directory = "/home/jlgutenson/rtspy/hrrr_subhourly" # name of the directory storing each forecast
+        # name_of_gridded_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/hrrr_subhourly" # name of the directory storing each forecast
         # path to the folder containing the Vortex install, the HEC tool for converted gridded data into DSS format
         path_to_vortex_install = "/home/jlgutenson/vortex-0.11.0"
         # path to Jython executable
@@ -45,18 +45,19 @@ if __name__ == "__main__":
         # should I delete the grib forecast files? They're big!
         delete_gribs = True
         # where are the scripts were executing (for cron jobs)
-        # cwd = '/home/jlgutenson/rtspy'
-        cwd = os.getcwd()
+        cwd = '/home/jlgutenson/rtspy'
+        # cwd = os.getcwd()
         # should I download the STOFS-3D-Atlantic data?
         download_stofs_data = True
         # what STOFS-3D-Atlantic file format should I download?
         file_format_for_stofs = "grib2"
         # where are we storing the STOFS forecasts?
-        # name_of_stofs_directory = "/home/jlgutenson/rtspy/stofs3d_daily"
-        name_of_stofs_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/stofs3d_daily"
+        name_of_stofs_directory = "/home/jlgutenson/rtspy/stofs3d_daily"
+        # name_of_stofs_directory = "/mnt/d/Gutenson_RATES/TWDB-FIF-LRGVDC/2023/Scripts/build_hms_inputs/stofs3d_daily"
 
         # list of watersheds we're going to run RTS for
         list_of_watersheds = ['RVD','IBWC','AC','BSC','HWMD']
+        # list_of_watersheds = ['IBWC']
 
         # our dictionary that tell us where all the necessary data are
         watershed_vars_dict = {'RVD':{'hec_hms_clip_shp': "{0}/RVD/HMS/gis/RVD_83_1/RVD_83_1.shp".format(model_library),
